@@ -10,6 +10,104 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
+
+enum Role {
+  admin
+  user
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  username  String    @unique
+  email     String    @unique
+  password  String
+  name      String
+  avatar    String
+  role      Role
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  groupChats        GroupChat[]       @relation("GroupAuthor")
+  groupMessages     GroupChatMessage[]
+  groupMemberships  GroupChatMember[]
+  privateChatsOne   PrivateChat[]     @relation("UserOne")
+  privateChatsTwo   PrivateChat[]     @relation("UserTwo")
+  privateMessages   PrivateChatMessage[]
+
+  @@map("user")
+}
+
+model GroupChat {
+  id        Int       @id @default(autoincrement())
+  authorId  Int
+  name      String
+  image     String    @db.VarChar(255)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  author    User       @relation("GroupAuthor", fields: [authorId], references: [id])
+  messages  GroupChatMessage[]
+  members   GroupChatMember[]
+
+  @@map("group_chat")
+}
+
+model GroupChatMessage {
+  id        Int       @id @default(autoincrement())
+  groupId   Int
+  authorId  Int
+  content   String
+  image     String    @db.VarChar(255)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  group     GroupChat @relation(fields: [groupId], references: [id])
+  author    User      @relation(fields: [authorId], references: [id])
+
+  @@map("group_chat_message")
+}
+
+model GroupChatMember {
+  id       Int       @id @default(autoincrement())
+  groupId  Int
+  userId   Int
+
+  group    GroupChat @relation(fields: [groupId], references: [id])
+  user     User      @relation(fields: [userId], references: [id])
+
+  @@map("group_chat_member")
+}
+
+model PrivateChat {
+  id        Int      @id @default(autoincrement())
+  userIdOne Int
+  userIdTwo Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userOne   User     @relation("UserOne", fields: [userIdOne], references: [id])
+  userTwo   User     @relation("UserTwo", fields: [userIdTwo], references: [id])
+  messages  PrivateChatMessage[]
+
+  @@map("private_chat")
+}
+
+model PrivateChatMessage {
+  id        Int       @id @default(autoincrement())
+  chatId    Int
+  authorId  Int
+  content   String    @db.Text
+  image     String    @db.VarChar(255)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  chat      PrivateChat @relation(fields: [chatId], references: [id])
+  author    User        @relation(fields: [authorId], references: [id])
+
+  @@map("private_chat_message")
+}
+
+
