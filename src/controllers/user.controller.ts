@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { createUser, deleteUser, getAllUser, getUser, loginUser, updateUser } from "../services/user.service";
 import { errorResponse, successResponse } from "../utils/response";
-import jwt from "jsonwebtoken";
 import { JWT_REFRESH_SECRET_KEY, JWT_SECRET_KEY } from "../data/envData";
 import { generateToken } from "../utils/jwt";
 
@@ -24,10 +23,14 @@ export async function getUserHandle(req: Request, res: Response) {
   try {
     const { id } = req.params;
     const numberId = Number(id)
-    const result = getUser(numberId)
-    if (result) res.status(200).json(successResponse(result));
+    const result = await getUser(numberId)
+    
+    if (result) {
+      res.status(200).json(successResponse(result));
+      return;
+    } 
 
-    res.status(404).json(errorResponse(404, 'not found', "Email or Password Wrong", "Email or Password Wrong!"))
+    res.status(404).json(errorResponse(404, 'Not Found', "User Not Found", "Email or Password Wrong!"))
 
   } catch (error) {
     const errMessage = error instanceof Error ? error.message : "An unknown error occurred";

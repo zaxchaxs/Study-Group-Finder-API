@@ -8,15 +8,15 @@ export async function validateRegistUser(req: Request, res: Response, next: Next
   try {
     const result = registUserSchema.safeParse(req.body)
     if (!result.success) {
-      res.status(400).json(errorResponse(400, 'Bad Request', 'Validation Error', result.error.message));
+      res.status(400).json(errorResponse(400, 'Bad Request', JSON.parse(result.error.message), JSON.parse(result.error.message)[0].message));
       return;
     }
 
     const duplicateUser = await prisma.user.findFirst({
       where: {
         OR: [
-          { email: result.data.body.email },
-          { username: result.data.body.username }]
+          { email: result.data.email },
+          { username: result.data.username }]
       }
     })
 
@@ -25,7 +25,7 @@ export async function validateRegistUser(req: Request, res: Response, next: Next
       return;
     };
 
-    const hashedPassword = await bcrypt.hash(result.data.body.password, 10);
+    const hashedPassword = await bcrypt.hash(result.data.password, 10);
     req.body.password = hashedPassword
     next()
 
@@ -38,7 +38,7 @@ export async function validateUpdateUser(req: Request, res: Response, next: Next
   try {
     const result = updateUserSchema.safeParse(req.body);
     if(!result.success) {
-      res.status(400).json(errorResponse(400, 'Bad Request', 'Validation Error', result.error.message));      
+      res.status(400).json(errorResponse(400, 'Bad Request', JSON.parse(result.error.message), JSON.parse(result.error.message)[0].message));      
       return;
     }
     next()
@@ -52,7 +52,7 @@ export async function validateLoginUser(req: Request, res: Response, next: NextF
   try {
     const result = loginUserSchema.safeParse(req.body);
     if(!result.success) {
-      res.status(400).json(errorResponse(400, 'Bad Request', 'Validation Error', result.error.message));      
+      res.status(400).json(errorResponse(400, 'Bad Request', JSON.parse(result.error.message), JSON.parse(result.error.message)[0].message));      
       return;
     }
     const user = await prisma.user.findUnique({

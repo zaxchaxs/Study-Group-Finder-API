@@ -1,14 +1,16 @@
-const socket = io("http://localhost:3000");
+const socket = io("http://localhost:5000");
 
 const params = new URLSearchParams(window.location.search);
 const username = params.get("username");
 const room = params.get("room");
 
 document.getElementById("roomTitle").innerText = `Room: ${room}`;
-socket.emit("joinRoom", room);
+socket.emit("groupChat", room);
 
 // Terima pesan dari server
-socket.on("receiveMessage", (data) => {
+
+socket.on("groupChatMessage", (data) => {
+  console.log(data);
   const chatBox = document.getElementById("chatBox");
   const msg = document.createElement("div");
   msg.textContent = `${data.senderId}: ${data.message}`;
