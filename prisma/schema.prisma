@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -25,7 +24,7 @@ model User {
   email     String    @unique
   password  String
   name      String
-  avatar    String
+  avatar    String?
   role      Role
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -44,7 +43,7 @@ model GroupChat {
   id        Int       @id @default(autoincrement())
   authorId  Int
   name      String
-  image     String    @db.VarChar(255)
+  image     String?    @db.VarChar(255)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
@@ -60,7 +59,7 @@ model GroupChatMessage {
   groupId   Int
   authorId  Int
   content   String
-  image     String    @db.VarChar(255)
+  image     String?    @db.VarChar(255)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
@@ -100,7 +99,7 @@ model PrivateChatMessage {
   chatId    Int
   authorId  Int
   content   String    @db.Text
-  image     String    @db.VarChar(255)
+  image     String?    @db.VarChar(255)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 

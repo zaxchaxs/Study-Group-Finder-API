@@ -1,7 +1,110 @@
 import { Request, Response } from "express";
-import { createUser } from "../services/user.service";
+import { createUser, deleteUser, getAllUser, getUser, loginUser, updateUser } from "../services/user.service";
+import { errorResponse, successResponse } from "../utils/response";
+import jwt from "jsonwebtoken";
+import { JWT_REFRESH_SECRET_KEY, JWT_SECRET_KEY } from "../data/envData";
+import { generateToken } from "../utils/jwt";
 
-export async function createUserHandler(req: Request, res: Response) {
-  const user = await createUser(req.body);
-  res.status(201).json(user);
+
+export async function getAllUserHandle(req: Request, res: Response) {
+  try {
+    const users = await getAllUser();
+    res.status(200).json(successResponse(users))
+
+  } catch (error) {
+    const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error(errMessage)
+    res.status(500).json(
+      errorResponse(500, 'Internal Server Error', error, errMessage)
+    )
+  }
+}
+
+export async function getUserHandle(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    const numberId = Number(id)
+    const result = getUser(numberId)
+    if (result) res.status(200).json(successResponse(result));
+
+    res.status(404).json(errorResponse(404, 'not found', "Email or Password Wrong", "Email or Password Wrong!"))
+
+  } catch (error) {
+    const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error(errMessage)
+    res.status(500).json(
+      errorResponse(500, 'Internal Server Error', error, errMessage)
+    )
+  }
+}
+
+export async function postUserHandler(req: Request, res: Response) {
+  try {
+    const user = await createUser(req.body);
+
+    res.status(200).json(successResponse(user));
+  } catch (error) {
+    const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error(errMessage)
+    res.status(500).json(
+      errorResponse(500, 'Internal Server Error', error, errMessage)
+    )
+  }
+}
+
+export async function updateUserHandle(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    const numberId = Number(id)
+    const result = await updateUser(numberId, req.body)
+    res.status(200).json(successResponse(result))
+
+  } catch (error) {
+    const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error(errMessage)
+    res.status(500).json(
+      errorResponse(500, 'Internal Server Error', error, errMessage)
+    )
+  }
+}
+
+export async function deleteUserHandle(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    const numberId = Number(id)
+    const result = await deleteUser(numberId);
+    res.status(200).json(successResponse(result))
+
+  } catch (error) {
+    const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error(errMessage)
+    res.status(500).json(
+      errorResponse(500, 'Internal Server Error', error, errMessage)
+    )
+  }
+}
+
+export async function loginUserHandle(req: Request, res: Response) {
+  try {
+    const result = await loginUser(req.body);
+    if (result) {
+      const token = generateToken(result)
+      const refreshToken = generateToken(result, "7d", JWT_REFRESH_SECRET_KEY);
+
+      res.status(200).json(successResponse({
+        ...result,
+        token,
+        refreshToken
+      }));
+    }
+
+    res.status(404).json(errorResponse(404, 'not found', "Email or Password Wrong", "Email or Password Wrong!"))
+
+  } catch (error) {
+    const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error(errMessage)
+    res.status(500).json(
+      errorResponse(500, 'Internal Server Error', error, errMessage)
+    )
+  }
 }
