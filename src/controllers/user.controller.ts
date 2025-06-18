@@ -3,6 +3,7 @@ import { createUser, deleteUser, getAllUser, getUser, loginUser, updateUser } fr
 import { errorResponse, successResponse } from "../utils/response";
 import { JWT_REFRESH_SECRET_KEY, JWT_SECRET_KEY } from "../data/envData";
 import { generateToken } from "../utils/jwt";
+import fs from "fs";
 
 
 export async function getAllUserHandle(req: Request, res: Response) {
@@ -24,11 +25,11 @@ export async function getUserHandle(req: Request, res: Response) {
     const { id } = req.params;
     const numberId = Number(id)
     const result = await getUser(numberId)
-    
+
     if (result) {
       res.status(200).json(successResponse(result));
       return;
-    } 
+    }
 
     res.status(404).json(errorResponse(404, 'Not Found', "User Not Found", "Email or Password Wrong!"))
 
@@ -76,6 +77,9 @@ export async function deleteUserHandle(req: Request, res: Response) {
     const { id } = req.params;
     const numberId = Number(id)
     const result = await deleteUser(numberId);
+    fs.unlink(`public/${result.avatar}`, err => {
+      console.error("#irzi ignore this: ", err);
+    })
     res.status(200).json(successResponse(result))
 
   } catch (error) {

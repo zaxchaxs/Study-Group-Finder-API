@@ -13,7 +13,7 @@ export const updateUserSchema = z.object({
   username: z.string({ message: "username is required" }).min(5, { message: "Username should be more than 5 character" }).max(191, { message: "username character is too long" }),
   email: z.string({ message: "email is required" }).email({ message: "invalid email format" }).max(191, { message: "email is too long" }),
   name: z.string({ message: "name is required" }).min(4).max(191, { message: "name is too long" }),
-  avatar: z.string().max(255).optional(),
+  avatar: z.string({message: "Avatar field is required!"}).max(255, {message: "Avatar value contain most 255 character!"}).or(z.null()),
   role: z.enum(["user", "admin"], { message: "invalid role type" })
 })
 

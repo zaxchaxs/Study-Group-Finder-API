@@ -3,71 +3,124 @@ import { Request, Response, NextFunction } from "express";
 import { errorResponse } from "../utils/response";
 import { loginUserSchema, registUserSchema, updateUserSchema } from "../schemas/user.schema";
 import prisma from "../configs/prismaClient";
+import { memoryUpload } from './multerFileUpload';
+import fs from "fs";
+import path from "path";
 
 export async function validateRegistUser(req: Request, res: Response, next: NextFunction) {
-  try {
-    const result = registUserSchema.safeParse(req.body)
-    if (!result.success) {
-      res.status(400).json(errorResponse(400, 'Bad Request', JSON.parse(result.error.message), JSON.parse(result.error.message)[0].message));
-      return;
-    }
+  memoryUpload([{ name: "avatar", maxCount: 1 }])(req, res, async err => {
+    if (err) next(err);
 
-    const duplicateUser = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { email: result.data.email },
-          { username: result.data.username }]
+    try {
+      const result = registUserSchema.safeParse(req.body)
+      if (!result.success) {
+        res.status(400).json(errorResponse(400, 'Bad Request', JSON.parse(result.error.message), JSON.parse(result.error.message)[0].message));
+        return;
       }
-    })
 
-    if (duplicateUser) {
-      res.status(409).json(errorResponse(409, 'Conflict', "Conflict", "Email or Username already taken"))
-      return;
-    };
+      const duplicateUser = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { email: result.data.email },
+            { username: result.data.username }]
+        }
+      })
 
-    const hashedPassword = await bcrypt.hash(result.data.password, 10);
-    req.body.password = hashedPassword
-    next()
+      if (duplicateUser) {
+        res.status(409).json(errorResponse(409, 'Conflict', "Conflict", "Email or Username already taken"))
+        return;
+      };
 
-  } catch (error) {
-    next(error)
-  }
+      if (req.files && typeof req.files === "object" && "avatar" in req.files) {
+        const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+        const file = files["avatar"][0];
+        const dir = path.join("public/images/user");
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+        const ext = file.mimetype.split("/")[1] === "jpeg" ? "jpg" : file.mimetype.split("/")[1];
+        const filename = `${Date.now()}.${ext}`;
+        const fullPath = path.join(dir, filename);
+
+        fs.writeFileSync(fullPath, file.buffer);
+
+        req.body.avatar = path.join("images/user", filename);
+      }
+
+      const hashedPassword = await bcrypt.hash(result.data.password, 10);
+      req.body.password = hashedPassword
+
+      next()
+    } catch (error) {
+      next(error)
+    }
+  })
 }
 
 export async function validateUpdateUser(req: Request, res: Response, next: NextFunction) {
-  try {
-    const result = updateUserSchema.safeParse(req.body);
-    if(!result.success) {
-      res.status(400).json(errorResponse(400, 'Bad Request', JSON.parse(result.error.message), JSON.parse(result.error.message)[0].message));      
-      return;
-    }
-    next()
+  memoryUpload([{ name: "newAvatar", maxCount: 1 }])(req, res, async err => {
+    if (err) next(err);
 
-  } catch (error) {
-    next(error)
-  }
+    let newData = {
+      ...req.body,
+      avatar: req.body.avatar === 'null' ? null : req.body.avatar
+    }
+    
+    try {
+      const result = updateUserSchema.safeParse(newData);
+      if (!result.success) {
+        res.status(400).json(errorResponse(400, 'Bad Request', JSON.parse(result.error.message), JSON.parse(result.error.message)[0].message));
+        return;
+      }
+
+      if (req.files && typeof req.files === "object" && "newAvatar" in req.files) {
+        const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+        const file = files["newAvatar"][0];
+        const dir = path.join("public/images/user");
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        
+        const ext = file.mimetype.split("/")[1] === "jpeg" ? "jpg" : file.mimetype.split("/")[1];
+        const filename = `${Date.now()}.${ext}`;
+        const fullPath = path.join(dir, filename);
+
+        fs.writeFileSync(fullPath, file.buffer);
+
+        // delete image lama
+        fs.unlink(`public/${newData.avatar}`, (error) => {
+          console.error("#irzi ignore this: ", error);
+        });
+
+        newData.avatar = path.join("images/user", filename)
+      }
+
+      req.body = newData;
+
+      next()
+    } catch (error) {
+      next(error)
+    }
+  })
 }
 
 export async function validateLoginUser(req: Request, res: Response, next: NextFunction) {
   try {
     const result = loginUserSchema.safeParse(req.body);
-    if(!result.success) {
-      res.status(400).json(errorResponse(400, 'Bad Request', JSON.parse(result.error.message), JSON.parse(result.error.message)[0].message));      
+    if (!result.success) {
+      res.status(400).json(errorResponse(400, 'Bad Request', JSON.parse(result.error.message), JSON.parse(result.error.message)[0].message));
       return;
     }
     const user = await prisma.user.findUnique({
-      where:  {
+      where: {
         email: result.data.email
       }
     })
-    
-    if(!user) {
-      res.status(404).json(errorResponse(404, 'Not Found', 'Email or Password Wrong', "Email or Password Wrong"));      
+
+    if (!user) {
+      res.status(404).json(errorResponse(404, 'Not Found', 'Email or Password Wrong', "Email or Password Wrong"));
       return;
     }
 
     const isValidPassword = await bcrypt.compare(result.data.password, user.password)
-    if(!isValidPassword) {
+    if (!isValidPassword) {
       res.status(401).json(errorResponse(401, 'Unauthorized', "Unauthorized", "Wrong email or password"))
       return;
     }

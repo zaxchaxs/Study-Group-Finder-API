@@ -54,6 +54,16 @@ export async function updateUser(id: number, data: UpdateUserType) {
     where: {
       id
     },
+    select: {
+      id: true,
+      email: true,
+      username: true,
+      name: true,
+      avatar: true,
+      role: true,
+      createdAt: true,
+      updatedAt: true
+    },
     data
   })
 }
