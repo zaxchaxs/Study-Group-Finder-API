@@ -23,7 +23,7 @@ document.getElementById("messageForm").addEventListener("submit", function (e) {
   e.preventDefault();
   const messageInput = document.getElementById("messageInput");
   const message = messageInput.value;
-  socket.emit("sendMessage", {
+  socket.emit("sendGroupChatMessage", {
     roomId: room,
     message,
     senderId: username,

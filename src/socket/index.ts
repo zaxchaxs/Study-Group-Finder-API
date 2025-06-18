@@ -7,33 +7,45 @@ export function initSocket(io: Server) {
     console.log(`User connected: ${socket.id}`);
 
     // Join to room (for group chat)
-    socket.on("groupChat", async (roomId: string) => {
-      socket.join(roomId);
-      console.log(`Socket ${socket.id} joined room: ${roomId}`);
-
+    socket.on("groupChat", async (groupId: string) => {
       try {
-        const messages = await getGroupMessage(Number(roomId))
+        socket.join(groupId);
+        console.log(`Socket ${socket.id} joined group: ${groupId}`);
+  
+        const messages = await getGroupMessage(Number(groupId))
         socket.emit("groupChatMessage", messages)
         
       } catch (error) {
-        
+        socket.emit("groupChatError", {
+            message: "Internar Server Error",
+            error: error as Error
+        })
       }
-
     });
 
     // Handle send group message
     socket.on("sendGroupChatMessage", async (data: PostGroupChatMessageType) => {
-      const newMessage = await postGroupMessage(data)
-
-      if(newMessage) {
-        // Emit to everyone in the room except sender
-        const groupId = String(newMessage.id)
-        socket.to(groupId).emit("receiveGroupChatMessage", data);
+      try {
+        const newMessage = await postGroupMessage(data)
+        if(newMessage) {
+          // Emit to everyone in the room except sender
+          const groupId = String(newMessage.id)
+          socket.to(groupId).emit("receiveGroupChatMessage", data);
+        } else {
+          socket.emit("sendGroupChatMessageError", {
+            message: "Failed to send message"
+          })
+        }
+      } catch (error) {
+        socket.emit("sendGroupChatMessageError", {
+            message: "Internar Server Error",
+            error: error as Error
+        })
       }
     });
 
     
-    // Join to room (for personal)
+    // Join to room (for personal)s
     
 
     // Handle disconnect
