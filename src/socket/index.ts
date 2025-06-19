@@ -1,6 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { getGroupMessage, postGroupMessage } from "../services/message.service";
 import { PostGroupChatMessageType } from "../types/message";
+import { addGroupchatMessageSchema } from "../schemas/groupchat.schema";
 
 export function initSocket(io: Server) {
   io.on("connection", (socket: Socket) => {
@@ -17,6 +18,7 @@ export function initSocket(io: Server) {
         
       } catch (error) {
         socket.emit("groupChatError", {
+            status: 500,
             message: "Internar Server Error",
             error: error as Error
         })
@@ -26,19 +28,44 @@ export function initSocket(io: Server) {
     // Handle send group message
     socket.on("sendGroupChatMessage", async (data: PostGroupChatMessageType) => {
       try {
-        const newMessage = await postGroupMessage(data)
-        if(newMessage) {
-          // Emit to everyone in the room except sender
-          const groupId = String(newMessage.id)
-          socket.to(groupId).emit("receiveGroupChatMessage", data);
+        
+        const newData = {
+          ...data,
+          groupId: Number(data.groupId),
+          authorId: Number(data.authorId),
+          image: data.image === 'null' ? null : data.image
+        }
+
+        const dataValidation = addGroupchatMessageSchema.safeParse(newData);
+
+        if(dataValidation.success) {
+          const newMessage = await postGroupMessage(newData)
+          if(newMessage) {
+            // Emit to everyone in the room except sender
+            const groupId = newMessage.groupId.toString()
+            io.to(groupId).emit("receiveGroupChatMessage", newMessage);
+          } else {
+            socket.emit("sendGroupChatMessageError", {
+              status: 500,
+              statusCode: "Internal Server Error",
+              message: "Failed send message",
+              error: "Failed send message"
+            })
+          }
         } else {
+          const parsedMessage = dataValidation.error
           socket.emit("sendGroupChatMessageError", {
-            message: "Failed to send message"
+            status: 400,
+            statusCode: "Bad Request",
+            message: parsedMessage.message,
+            error: parsedMessage
           })
         }
       } catch (error) {
         socket.emit("sendGroupChatMessageError", {
-            message: "Internar Server Error",
+            status: 500,
+            statusCode: "Internal Server Error",
+            message: "Internal Server Error",
             error: error as Error
         })
       }

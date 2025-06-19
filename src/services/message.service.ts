@@ -3,9 +3,9 @@ import { PostGroupChatMessageType } from "../types/message";
 
 export const getGroupMessage = async (id: number) => {
     try {
-        const messages = await prisma.groupChat.findMany({
+        const messages = await prisma.groupChatMessage.findMany({
             where: {
-                id
+                groupId: id
             },
             include: {
                 author: {
@@ -15,11 +15,15 @@ export const getGroupMessage = async (id: number) => {
                 }
             },
             orderBy: {
-                createdAt: "desc"
+                createdAt: "asc"
             }
         })
 
-        return messages
+        return {
+            status: 200,
+            statusCode: "Success",
+            data: messages
+        }
     } catch (error) {
         const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
         console.error(errMessage)
@@ -28,7 +32,6 @@ export const getGroupMessage = async (id: number) => {
 
 export const postGroupMessage = async (data: PostGroupChatMessageType) => {
     try {
-        
         const newMessage = await prisma.groupChatMessage.create({
             data,
             include: {

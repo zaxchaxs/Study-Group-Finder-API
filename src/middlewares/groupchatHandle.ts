@@ -37,7 +37,6 @@ export async function validateCreateGroupchat(req: Request, res: Response, next:
                 
                 req.body.image = path.join("images/groupchat", filename);
             }
-
             req.body.authorId = data.authorId
             next()
 
