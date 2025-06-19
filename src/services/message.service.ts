@@ -1,5 +1,5 @@
 import prisma from "../configs/prismaClient"
-import { PostGroupChatMessageType } from "../types/message";
+import { PostGroupChatMessageType } from "../types/privatechat";
 
 export const getGroupMessage = async (id: number) => {
     try {

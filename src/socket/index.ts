@@ -1,6 +1,6 @@
 import { Server, Socket } from "socket.io";
 import { getGroupMessage, postGroupMessage } from "../services/message.service";
-import { PostGroupChatMessageType } from "../types/message";
+import { PostGroupChatMessageType } from "../types/privatechat";
 import { addGroupchatMessageSchema } from "../schemas/groupchat.schema";
 
 export function initSocket(io: Server) {

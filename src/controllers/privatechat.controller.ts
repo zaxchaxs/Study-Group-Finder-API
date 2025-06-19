@@ -1,61 +1,11 @@
 import { Request, Response } from "express";
 import { errorResponse, successResponse } from "../utils/response";
-import { createGroupchat, deleteGroupchat, deleteGroupchatMessage, getAllGroupChat, getAllGroupchatMessage, getDetailGroupchat, getUserGroupchat, postGroupchatMessage, updateGroupchat, updateGroupchatMessage } from "../services/groupchat.service";
+import { createPrivateChat, deletePrivateChat, deletePrivateChatMessage, getAllPrivateChat, getAllPrivateChatMessage, getDetailPrivateChat, getUserPrivateChat, getUserPrivateChatMessage, postPrivateChatMessage, updatePrivateChatMessage } from "../services/privatechat.service";
 import fs from "fs";
 
-export async function getAllGroupChatHandle(req: Request, res: Response) {
+export async function getAllPrivateChatHandle(req: Request, res: Response) {
     try {
-        const groups = await getAllGroupChat();
-        res.status(200).json(successResponse(groups));
-
-    } catch (error) {
-        const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
-        console.error(errMessage)
-        res.status(500).json(
-            errorResponse(500, 'Internal Server Error', error, errMessage)
-        )
-    }
-}
-
-export async function getUserGroupChatHandle(req: Request, res: Response) {
-    try {
-        const { id } = req.params;
-        const numberId = Number(id);
-        const groups = await getUserGroupchat(numberId)
-        res.status(200).json(successResponse(groups))
-
-    } catch (error) {
-        const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
-        console.error(errMessage)
-        res.status(500).json(
-            errorResponse(500, 'Internal Server Error', error, errMessage)
-        )
-    }
-}
-
-// include message
-export async function getDetailGroupChatHandle(req: Request, res: Response) {
-    try {
-        const { id } = req.params
-        const { showMessages } = req.query;
-
-        const numberid = Number(id);
-        
-        const data = await getDetailGroupchat(numberid, showMessages == "true")
-        
-        res.status(200).json(successResponse(data))
-    } catch (error) {
-        const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
-        console.error(errMessage)
-        res.status(500).json(
-            errorResponse(500, 'Internal Server Error', error, errMessage)
-        )
-    }
-}
-
-export async function postGroupChatHandle(req: Request, res: Response) {
-    try {
-        const result = await createGroupchat(req.body);
+        const result = await getAllPrivateChat();
         res.status(200).json(successResponse(result))
     } catch (error) {
         const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
@@ -66,12 +16,17 @@ export async function postGroupChatHandle(req: Request, res: Response) {
     }
 }
 
-export async function updateGroupChatHandle(req: Request, res: Response) {
+export async function getUserPrivateChatHandle(req: Request, res: Response) {
     try {
         const { id } = req.params;
-        const numberId = Number(id);
-        const result = await updateGroupchat(numberId, req.body);
-        res.status(200).json(result)
+        if (!id) {
+            res.status(400).json(errorResponse(400, "Bad Request", "User ID is required in parameter!", "User ID is required in parameter!"))
+            return;
+        };
+        const numberId = Number(id)
+        const result = await getUserPrivateChat(numberId);
+        res.status(200).json(successResponse(result))
+
     } catch (error) {
         const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
         console.error(errMessage)
@@ -81,16 +36,58 @@ export async function updateGroupChatHandle(req: Request, res: Response) {
     }
 }
 
-export async function deleteGroupChatHandle(req: Request, res: Response) {
+export async function getDetailPrivateChatHandle(req: Request, res: Response) {
+    try {
+        const id = Number(req.body.id);
+        if (!id) {
+            res.status(400).json(errorResponse(400, "Bad Request", "Private chat ID is required in parameter!", "Private chat ID is required in parameter!"))
+            return
+        };
+
+        const result = await getDetailPrivateChat(id);
+        res.status(200).json(successResponse(result))
+
+    } catch (error) {
+        const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+        console.error(errMessage)
+        res.status(500).json(
+            errorResponse(500, 'Internal Server Error', error, errMessage)
+        )
+    }
+}
+
+export async function postPrivateChatHandle(req: Request, res: Response) {
+    try {
+        const result = await createPrivateChat(req.body);
+        res.status(200).json(successResponse(result))
+
+    } catch (error) {
+        const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+        console.error(errMessage)
+        res.status(500).json(
+            errorResponse(500, 'Internal Server Error', error, errMessage)
+        )
+    }
+}
+
+export async function deletePrivateChatHandle(req: Request, res: Response) {
     try {
         const { id } = req.params;
         const numberId = Number(id);
-        const result = await deleteGroupchat(numberId);
-        fs.unlink(`public/${result.image}`, err => {
-            console.error("#irzi ignore this: ", err);
-        })
-        res.status(200).json(successResponse(result));
-        
+        const messages = await getUserPrivateChatMessage(numberId);
+        if (messages.length !== 0) {
+            messages.forEach(message => {
+                if (message.image) {
+                    fs.unlink(`public/${message.image}`, err => {
+                        console.error("#irzi ignore this: ", err);
+                    })
+                }
+            })
+        };
+
+        const result = await deletePrivateChat(numberId)
+        res.status(200).json(successResponse(result))
+
     } catch (error) {
         const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
         console.error(errMessage)
@@ -101,10 +98,10 @@ export async function deleteGroupChatHandle(req: Request, res: Response) {
 }
 
 // Messages
-export async function getAllGroupchatMessageHandle(req: Request, res: Response) {
+export async function getAllPrivateChatMessageHandle(req: Request, res: Response) {
     try {
-        const groups = await getAllGroupchatMessage();
-        res.status(200).json(successResponse(groups));
+        const result = await getAllPrivateChatMessage();
+        res.status(200).json(successResponse(result))
 
     } catch (error) {
         const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
@@ -115,9 +112,39 @@ export async function getAllGroupchatMessageHandle(req: Request, res: Response) 
     }
 }
 
-export async function postGroupchatMessageHandle(req: Request, res: Response) {
+export async function getUserPrivateChatMessageHandle(req: Request, res: Response) {
     try {
-        const result = await postGroupchatMessage(req.body)
+        const id = Number(req.body.id);
+        const result = await getUserPrivateChatMessage(id)
+        res.status(200).json(successResponse(result))
+
+    } catch (error) {
+        const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+        console.error(errMessage)
+        res.status(500).json(
+            errorResponse(500, 'Internal Server Error', error, errMessage)
+        )
+    }
+}
+
+export async function postPrivateChatMessageHandle(req: Request, res: Response) {
+    try {
+        const result = await postPrivateChatMessage(req.body);
+        res.status(200).json(successResponse(result));
+
+    } catch (error) {
+        const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+        console.error(errMessage)
+        res.status(500).json(
+            errorResponse(500, 'Internal Server Error', error, errMessage)
+        )
+    }
+};
+
+export async function updatePrivateChatMessageHandle(req: Request, res: Response) {
+    try {
+        const id = Number(req.body.id)
+        const result = await updatePrivateChatMessage(id, req.body)
         res.status(200).json(successResponse(result));
 
     } catch (error) {
@@ -129,34 +156,17 @@ export async function postGroupchatMessageHandle(req: Request, res: Response) {
     }
 }
 
-export async function updateGroupchatMessageHandle(req: Request, res: Response) {
+export async function deletePrivateChatMessageHandle(req: Request, res: Response) {
     try {
-        const { id } = req.params;
-        const numberId = Number(id);
-        const result = await updateGroupchatMessage(numberId, req.body)
-        res.status(200).json(successResponse(result));
-
-    } catch (error) {
-        const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
-        console.error(errMessage)
-        res.status(500).json(
-            errorResponse(500, 'Internal Server Error', error, errMessage)
-        )
-    }
-}
-
-export async function deleteGroupchatMessageHandle(req: Request, res: Response) {
-    try {
-        const { id } = req.params;
-        const numberId = Number(id);
-        const result = await deleteGroupchatMessage(numberId);
-        if(result.image) {
+        const id = Number(req.body.id)
+        const result = await deletePrivateChatMessage(id)
+        if (result.image) {
             fs.unlink(`public/${result.image}`, err => {
                 console.error("#irzi ignore this: ", err);
             })
         }
         res.status(200).json(successResponse(result));
-        
+
     } catch (error) {
         const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
         console.error(errMessage)

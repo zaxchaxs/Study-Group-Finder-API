@@ -1,6 +1,6 @@
 import prisma from "../configs/prismaClient";
 import { PostGroupchatType, UpdateGroupchatType } from "../types/groupchat";
-import { PostGroupChatMessageType } from "../types/message";
+import { PostGroupChatMessageType } from "../types/privatechat";
 
 export async function getAllGroupChat() {
     const result = await prisma.groupChat.findMany({
@@ -103,7 +103,9 @@ export async function updateGroupchatMessage(id: number, data: PostGroupChatMess
         where: {
             id
         },
-        data
+        data: {
+            content: data.content
+        }
     })
 }
 

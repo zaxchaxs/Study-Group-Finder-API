@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { addGroupchatMessageSchema, addGroupChatSchema, updateGroupChatSchema } from "../schemas/groupchat.schema";
+import { addGroupchatMessageSchema, addGroupChatSchema, updateGroupchatMessageSchema, updateGroupChatSchema } from "../schemas/groupchat.schema";
 import { errorResponse } from "../utils/response";
 import { memoryUpload } from "./multerFileUpload";
 import fs from "fs";
@@ -110,7 +110,7 @@ export async function validateCreateGroupchatMessage(req: Request, res: Response
 
 export async function validateUpdateGroupchatMessage(req: Request, res: Response, next: NextFunction) {
     try {
-        const result = addGroupchatMessageSchema.safeParse(req.body);
+        const result = updateGroupchatMessageSchema.safeParse(req.body);
         if (!result.success) {
             res.status(400).json(errorResponse(400, 'Bad Request', JSON.parse(result.error.message), JSON.parse(result.error.message)[0].message));
             return;

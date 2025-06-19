@@ -18,3 +18,7 @@ export const addGroupchatMessageSchema = z.object({
   content: z.string({message: "Message content is required!"}),
   image: z.string().optional(),
 })
+
+export const updateGroupchatMessageSchema = z.object({
+  content: z.string({message: "Message content is required!"}),
+})
