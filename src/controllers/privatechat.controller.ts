@@ -38,7 +38,7 @@ export async function getUserPrivateChatHandle(req: Request, res: Response) {
 
 export async function getDetailPrivateChatHandle(req: Request, res: Response) {
     try {
-        const id = Number(req.body.id);
+        const id = Number(req.params?.id);
         if (!id) {
             res.status(400).json(errorResponse(400, "Bad Request", "Private chat ID is required in parameter!", "Private chat ID is required in parameter!"))
             return
@@ -114,7 +114,11 @@ export async function getAllPrivateChatMessageHandle(req: Request, res: Response
 
 export async function getUserPrivateChatMessageHandle(req: Request, res: Response) {
     try {
-        const id = Number(req.body.id);
+        const id = Number(req.params.id);
+        if (!id) {
+            res.status(400).json(errorResponse(400, "Bad Request", "Chat ID is required in parameter!", "Chat ID is required in parameter!"))
+            return
+        };
         const result = await getUserPrivateChatMessage(id)
         res.status(200).json(successResponse(result))
 
@@ -143,7 +147,11 @@ export async function postPrivateChatMessageHandle(req: Request, res: Response) 
 
 export async function updatePrivateChatMessageHandle(req: Request, res: Response) {
     try {
-        const id = Number(req.body.id)
+        const id = Number(req.params.id)
+        if (!id) {
+            res.status(400).json(errorResponse(400, "Bad Request", "Message ID is required in parameter!", "Message ID is required in parameter!"))
+            return
+        };
         const result = await updatePrivateChatMessage(id, req.body)
         res.status(200).json(successResponse(result));
 
@@ -158,7 +166,11 @@ export async function updatePrivateChatMessageHandle(req: Request, res: Response
 
 export async function deletePrivateChatMessageHandle(req: Request, res: Response) {
     try {
-        const id = Number(req.body.id)
+        const id = Number(req.params.id)
+        if (!id) {
+            res.status(400).json(errorResponse(400, "Bad Request", "Message ID is required in parameter!", "Message ID is required in parameter!"))
+            return
+        };
         const result = await deletePrivateChatMessage(id)
         if (result.image) {
             fs.unlink(`public/${result.image}`, err => {

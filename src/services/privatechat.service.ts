@@ -71,7 +71,14 @@ export async function getDetailPrivateChat(id: number) {
                         select: { id: true, username: true, name: true, role: true, avatar: true, }
                     }
                 }
+            },
+            userOne: {
+                select: { id: true, username: true, name: true, role: true, avatar: true, }
+            },
+            userTwo: {
+                select: { id: true, username: true, name: true, role: true, avatar: true, }
             }
+            
         }
     })   
 };
@@ -106,7 +113,14 @@ export async function getUserPrivateChatMessage(id: number) {
 };
 
 export async function postPrivateChatMessage(data: PostPrivateChatMessageType) {
-    return await prisma.privateChatMessage.create({data})
+    return await prisma.privateChatMessage.create({
+        data,
+        include: {
+            author: {
+                select: { id: true, username: true, name: true, role: true, avatar: true, }
+            }
+        }
+    })
 };
 
 export async function updatePrivateChatMessage(id: number, data: PostPrivateChatMessageType) {

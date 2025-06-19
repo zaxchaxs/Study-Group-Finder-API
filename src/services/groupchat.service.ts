@@ -1,6 +1,5 @@
 import prisma from "../configs/prismaClient";
-import { PostGroupchatType, UpdateGroupchatType } from "../types/groupchat";
-import { PostGroupChatMessageType } from "../types/privatechat";
+import { PostGroupchatMessageType, PostGroupchatType, UpdateGroupchatType } from "../types/groupchat";
 
 export async function getAllGroupChat() {
     const result = await prisma.groupChat.findMany({
@@ -94,11 +93,11 @@ export async function getAllGroupchatMessage() {
     return result
 }
 
-export async function postGroupchatMessage(data: PostGroupChatMessageType) {
+export async function postGroupchatMessage(data: PostGroupchatMessageType) {
     return await prisma.groupChatMessage.create({ data })
 }
 
-export async function updateGroupchatMessage(id: number, data: PostGroupChatMessageType) {
+export async function updateGroupchatMessage(id: number, data: PostGroupchatMessageType) {
     return await prisma.groupChatMessage.update({
         where: {
             id

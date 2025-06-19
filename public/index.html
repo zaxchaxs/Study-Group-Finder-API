@@ -5,10 +5,17 @@
   <title>Join Chat</title>
 </head>
 <body>
-  <h1>Join Chat Room</h1>
   <form id="joinForm">
+    <h1>Join Chat group</h1>
     <input type="text" id="username" placeholder="your id" required />
     <input type="text" id="room" placeholder="Room ID" required />
+    <button type="submit">Join</button>
+  </form>
+  
+  <form id="joinPrivateChatForm">
+    <h1>Join Chat private</h1>
+    <input type="text" id="myId" placeholder="your id" required />
+    <input type="text" id="chatId" placeholder="Room ID" required />
     <button type="submit">Join</button>
   </form>
 
@@ -18,6 +25,13 @@
       const username = document.getElementById("username").value;
       const room = document.getElementById("room").value;
       window.location.href = `chat.html?username=${username}&room=${room}`;
+    });
+
+    document.getElementById("joinPrivateChatForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const myId = document.getElementById("myId").value;
+      const room = document.getElementById("chatId").value;
+      window.location.href = `privatechat.html?myId=${myId}&chatId=${room}`;
     });
   </script>
 </body>

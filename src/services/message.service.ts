@@ -1,5 +1,5 @@
 import prisma from "../configs/prismaClient"
-import { PostGroupChatMessageType } from "../types/privatechat";
+import { PostGroupchatMessageType } from "../types/groupchat";
 
 export const getGroupMessage = async (id: number) => {
     try {
@@ -30,7 +30,7 @@ export const getGroupMessage = async (id: number) => {
     }
 }
 
-export const postGroupMessage = async (data: PostGroupChatMessageType) => {
+export const postGroupMessage = async (data: PostGroupchatMessageType) => {
     try {
         const newMessage = await prisma.groupChatMessage.create({
             data,
