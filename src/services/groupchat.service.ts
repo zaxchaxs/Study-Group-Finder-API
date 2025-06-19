@@ -88,6 +88,29 @@ export async function deleteGroupchat(id: number) {
 
 
 // Message
+
+export async function getAllGroupchatMessage() {
+    const result = await prisma.groupChatMessage.findMany();
+    return result
+}
+
 export async function postGroupchatMessage(data: PostGroupChatMessageType) {
     return await prisma.groupChatMessage.create({ data })
+}
+
+export async function updateGroupchatMessage(id: number, data: PostGroupChatMessageType) {
+    return await prisma.groupChatMessage.update({
+        where: {
+            id
+        },
+        data
+    })
+}
+
+export async function deleteGroupchatMessage(id: number) {
+    return await prisma.groupChatMessage.delete({
+        where: {
+            id
+        }
+    })
 }

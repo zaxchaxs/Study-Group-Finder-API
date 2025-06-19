@@ -72,8 +72,14 @@ export function initSocket(io: Server) {
     });
 
     
-    // Join to room (for personal)s
-    
+    // Join to room (for personal)
+    socket.on("privateChat", async () => {
+      try {
+        
+      } catch (error) {
+        
+      }
+    })
 
     // Handle disconnect
     socket.on("disconnect", () => {

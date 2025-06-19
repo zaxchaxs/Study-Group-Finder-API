@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { errorResponse, successResponse } from "../utils/response";
-import { createGroupchat, deleteGroupchat, getAllGroupChat, getDetailGroupchat, getUserGroupchat, postGroupchatMessage, updateGroupchat } from "../services/groupchat.service";
+import { createGroupchat, deleteGroupchat, deleteGroupchatMessage, getAllGroupChat, getAllGroupchatMessage, getDetailGroupchat, getUserGroupchat, postGroupchatMessage, updateGroupchat, updateGroupchatMessage } from "../services/groupchat.service";
 import fs from "fs";
 
 export async function getAllGroupChatHandle(req: Request, res: Response) {
@@ -100,12 +100,61 @@ export async function deleteGroupChatHandle(req: Request, res: Response) {
     }
 }
 
+// Messages
+export async function getAllGroupchatMessageHandle(req: Request, res: Response) {
+    try {
+        const groups = await getAllGroupchatMessage();
+        res.status(200).json(successResponse(groups));
+
+    } catch (error) {
+        const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+        console.error(errMessage)
+        res.status(500).json(
+            errorResponse(500, 'Internal Server Error', error, errMessage)
+        )
+    }
+}
 
 export async function postGroupchatMessageHandle(req: Request, res: Response) {
     try {
         const result = await postGroupchatMessage(req.body)
         res.status(200).json(successResponse(result));
 
+    } catch (error) {
+        const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+        console.error(errMessage)
+        res.status(500).json(
+            errorResponse(500, 'Internal Server Error', error, errMessage)
+        )
+    }
+}
+
+export async function updateGroupchatMessageHandle(req: Request, res: Response) {
+    try {
+        const { id } = req.params;
+        const numberId = Number(id);
+        const result = await updateGroupchatMessage(numberId, req.body)
+        res.status(200).json(successResponse(result));
+
+    } catch (error) {
+        const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+        console.error(errMessage)
+        res.status(500).json(
+            errorResponse(500, 'Internal Server Error', error, errMessage)
+        )
+    }
+}
+
+export async function deleteGroupchatMessageHandle(req: Request, res: Response) {
+    try {
+        const { id } = req.params;
+        const numberId = Number(id);
+        const result = await deleteGroupchatMessage(numberId);
+        fs.unlink(`public/${result.image}`, err => {
+            console.error("#irzi ignore this: ", err);
+        })
+        res.status(200).json(successResponse(result));
+        
     } catch (error) {
         const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
         console.error(errMessage)

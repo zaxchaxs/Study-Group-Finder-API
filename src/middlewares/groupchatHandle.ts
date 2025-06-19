@@ -107,3 +107,17 @@ export async function validateCreateGroupchatMessage(req: Request, res: Response
         next(error)
     }
 }
+
+export async function validateUpdateGroupchatMessage(req: Request, res: Response, next: NextFunction) {
+    try {
+        const result = addGroupchatMessageSchema.safeParse(req.body);
+        if (!result.success) {
+            res.status(400).json(errorResponse(400, 'Bad Request', JSON.parse(result.error.message), JSON.parse(result.error.message)[0].message));
+            return;
+        }
+
+        next()
+    } catch (error) {
+        next(error)
+    }
+}
