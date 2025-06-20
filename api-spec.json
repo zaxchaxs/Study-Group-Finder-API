@@ -1,0 +1,1255 @@
+{
+    "openapi":"3.0.2",
+    "info": {
+      "title":"Dokumentasi penggunaan API",
+      "version":"1.0",
+      "description": "Baca Dokumentasi nya, udah lengkap data(body), parameters, query yang harus dikirim di tiap endpoint"
+    },
+    "servers": [
+      {"url":"http://localhost:5000/api"}
+    ],
+    "paths": {
+        "/user": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Ambil semua data user",
+                "responses": {
+                    "200": {
+                        "description": "Respon sukses",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 200,
+                                    "statusCode": "Success",
+                                    "data": [
+                                        {
+                                            "id": 1,
+                                            "email": "zaxchaxs@gmail.com",
+                                            "username": "zaxchaxs",
+                                            "name": "irzi",
+                                            "avatar": null,
+                                            "role": "admin",
+                                            "createdAt": "2025-06-16T14:07:24.708Z",
+                                            "updatedAt": "2025-06-16T14:07:24.708Z"
+                                        }
+                                    ]
+                                }
+                                
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 500,
+                                    "statusCode": "Internal server error",
+                                    "error": "Internal server error",
+                                    "message": "Some message"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Users",
+                    "Authentications"
+                ],
+                "summary": "Register user",
+                "requestBody": {
+                    "required": true,
+                    "description": "",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "username": "irzirhmtllh",
+                                "email": "irzirhmtllh@gmail.com",
+                                "password": "irzirhmtllh123",
+                                "name": "irzi rahmatullah",
+                                "role": "user"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Respon Sukses ",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 200,
+                                    "statusCode": "Success",
+                                    "data": [
+                                        {
+                                            "id": 1,
+                                            "email": "zaxchaxs@gmail.com",
+                                            "username": "zaxchaxs",
+                                            "name": "irzi",
+                                            "avatar": null,
+                                            "role": "admin",
+                                            "createdAt": "2025-06-16T14:07:24.708Z",
+                                            "updatedAt": "2025-06-16T14:07:24.708Z"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "Email/username udah terdaftar": {
+                                        "value": {
+                                            "code": 409,
+                                            "statusMessage": "Conflict",
+                                            "error": "Conflict",
+                                            "message": "Email or Username already taken"
+                                        }
+                                    },
+                                    "Invalid Data": {
+                                        "value": {
+                                            "code": 400,
+                                            "statusMessage": "Bad Request",
+                                            "error": [
+                                                {
+                                                    "code": "too_small",
+                                                    "minimum": 5,
+                                                    "type": "string",
+                                                    "inclusive": true,
+                                                    "exact": false,
+                                                    "message": "Username should be more than 5 character",
+                                                    "path": [
+                                                        "username"
+                                                    ]
+                                                }
+                                            ],
+                                            "message": "Username should be more than 5 character"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 500,
+                                    "statusCode": "Internal server error",
+                                    "error": "Internal server error",
+                                    "message": "Some message"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/user/:id" : {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Ambil detail data user",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "description": "ID User",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 1
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Respon sukses",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 200,
+                                    "statusCode": "Success",
+                                    "data": [
+                                        {
+                                            "id": 1,
+                                            "email": "zaxchaxs@gmail.com",
+                                            "username": "zaxchaxs",
+                                            "name": "irzi",
+                                            "avatar": null,
+                                            "role": "admin",
+                                            "createdAt": "2025-06-16T14:07:24.708Z",
+                                            "updatedAt": "2025-06-16T14:07:24.708Z"
+                                        }
+                                    ]
+                                }        
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 500,
+                                    "statusCode": "Internal server error",
+                                    "error": "Internal server error",
+                                    "message": "Some message"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Users",
+                    "Authentications"
+                ],
+                "summary": "Update user",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "description": "ID User",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 1
+                    }
+                ],                
+                "requestBody": {
+                    "required": true,
+                    "description": "",
+                    "content": {
+                        "application/json": {
+                            "examples": {
+                                "Update ada avatarnya": {
+                                    "description": "Kirim datanya pakai formdata!!",
+                                    "value": {
+                                        "username": "irzirhmtllh",
+                                        "email": "irzirhmtllh@gmail.com",
+                                        "name": "irzi rahmatullah",
+                                        "role": "user",
+                                        "avatar": "(bisa null atau image path)",
+                                        "newAvatar": "File"
+                                    }
+                                },
+                                "update biasa": {
+                                    "value": {
+                                        "username": "irzirhmtllh",
+                                        "email": "irzirhmtllh@gmail.com",
+                                        "name": "irzi rahmatullah",
+                                        "role": "user",
+                                        "avatar": "(bisa null atau image path)"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success Sukses ",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 200,
+                                    "statusCode": "Success",
+                                    "data": [
+                                        {
+                                            "id": 1,
+                                            "email": "zaxchaxs@gmail.com",
+                                            "username": "zaxchaxs",
+                                            "name": "irzi",
+                                            "avatar": null,
+                                            "role": "admin",
+                                            "createdAt": "2025-06-16T14:07:24.708Z",
+                                            "updatedAt": "2025-06-16T14:07:24.708Z"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "Email/username udah terdaftar": {
+                                        "value": {
+                                            "code": 409,
+                                            "statusMessage": "Conflict",
+                                            "error": "Conflict",
+                                            "message": "Email or Username already taken"
+                                        }
+                                    },
+                                    "Invalid Data": {
+                                        "value": {
+                                            "code": 400,
+                                            "statusMessage": "Bad Request",
+                                            "error": [
+                                                {
+                                                    "code": "too_small",
+                                                    "minimum": 5,
+                                                    "type": "string",
+                                                    "inclusive": true,
+                                                    "exact": false,
+                                                    "message": "Username should be more than 5 character",
+                                                    "path": [
+                                                        "username"
+                                                    ]
+                                                }
+                                            ],
+                                            "message": "Username should be more than 5 character"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 500,
+                                    "statusCode": "Internal server error",
+                                    "error": "Internal server error",
+                                    "message": "Some message"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Users",
+                    "Authentications"
+                ],
+                "summary": "Hapus data user",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "description": "ID User",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 1
+                    }
+                ],                
+                "responses": {
+                    "200": {
+                        "description": "Respon sukses",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 200,
+                                    "statusCode": "Success",
+                                    "data": [
+                                        {
+                                            "id": 1,
+                                            "email": "zaxchaxs@gmail.com",
+                                            "username": "zaxchaxs",
+                                            "name": "irzi",
+                                            "avatar": null,
+                                            "role": "admin",
+                                            "createdAt": "2025-06-16T14:07:24.708Z",
+                                            "updatedAt": "2025-06-16T14:07:24.708Z"
+                                        }
+                                    ]
+                                }
+                                
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 500,
+                                    "statusCode": "Internal server error",
+                                    "error": "Internal server error",
+                                    "message": "Some message"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "tags": [
+                    "Authentications"
+                ],
+                "summary": "Login user",
+                "requestBody": {
+                    "required": true,
+                    "description": "",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "email": "irzirhmtllh@gmail.com",
+                                "password": "irzirhmtllh123"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success sukses ",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 200,
+                                    "statusCode": "Success",
+                                    "data": {
+                                        "code": 200,
+                                        "statusMessage": "success",
+                                        "data": {
+                                            "id": 2,
+                                            "email": "irzirhmtllh@gmail.com",
+                                            "username": "irzirhmtllh",
+                                            "name": "irzi rahmatullah edit",
+                                            "avatar": "images\\user\\1750217651507.jpg",
+                                            "role": "user",
+                                            "createdAt": "2025-06-16T14:09:52.787Z",
+                                            "updatedAt": "2025-06-18T03:34:11.511Z",
+                                            "token": "random token",
+                                            "refreshToken": "random token"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "examples": {
+                                    "Email atau password salah": {
+                                        "value": {
+                                        "code": 404,
+                                        "statusMessage": "Not Found",
+                                        "error": "Email or Password Wrong",
+                                        "message": "Email or Password Wrong"
+                                    }
+                                    },
+                                    "Invalid Data": {
+                                        "value": {
+                                            "code": 400,
+                                            "statusMessage": "Bad Request",
+                                            "error": [
+                                                {
+                                                    "validation": "email",
+                                                    "code": "invalid_string",
+                                                    "message": "invalid email format",
+                                                    "path": [
+                                                        "email"
+                                                    ]
+                                                }
+                                            ],
+                                            "message": "invalid email format"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 500,
+                                    "statusCode": "Internal server error",
+                                    "error": "Internal server error",
+                                    "message": "Some message"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/groups": {
+            "get": {
+                "tags": [
+                    "Group Chat"
+                ],
+                "summary": "Ambil semua data group chat",
+                "responses": {
+                    "200": {
+                        "description": "Respon sukses",
+                        "content": {
+                            "application/json": {
+                                "example": [{
+                                    "code": 200,
+                                    "statusMessage": "success",
+                                    "data": [
+                                        {
+                                            "id": 1,
+                                            "authorId": 1,
+                                            "name": "Group daldas",
+                                            "image": "images\\groupchat\\1750214050120.jpg",
+                                            "createdAt": "2025-06-17T03:54:50.020Z",
+                                            "updatedAt": "2025-06-18T02:34:10.150Z",
+                                            "messages": [
+                                                {
+                                                    "id": 18,
+                                                    "groupId": 1,
+                                                    "authorId": 1,
+                                                    "content": "Message third edit",
+                                                    "image": null,
+                                                    "createdAt": "2025-06-19T04:28:18.803Z",
+                                                    "updatedAt": "2025-06-19T04:28:18.803Z",
+                                                    "author": {
+                                                        "name": "irzi",
+                                                        "id": 1
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }]
+                            }
+                        }
+                    },
+                   "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 500,
+                                    "statusCode": "Internal server error",
+                                    "error": "Internal server error",
+                                    "message": "Some message"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Group Chat"
+                ],
+                "summary": "Buat Group Chat",
+                "requestBody": {
+                    "required": true,
+                    "description": "",
+                    "content": {
+                        "application/json": {
+                            "examples": {
+                                "Buat tanpa image": {
+                                    "value": {
+                                        "authorId": 1,
+                                        "name": "Group 1",
+                                        "image": null
+                                    }
+                                },
+                                "Buat dengan image": {
+                                    "value": {
+                                        "authorId": 1,
+                                        "name": "Group 1",
+                                        "image": "File"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Respon Success ",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "code": 200,
+                                    "statusMessage": "success",
+                                    "data": {
+                                        "id": 13,
+                                        "authorId": 1,
+                                        "name": "Group daldas",
+                                        "image": "",
+                                        "createdAt": "2025-06-20T03:35:54.023Z",
+                                        "updatedAt": "2025-06-20T03:35:54.023Z"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "code": 400,
+                                    "statusMessage": "Bad Request",
+                                    "error": [
+                                        {
+                                            "code": "invalid_type",
+                                            "expected": "string",
+                                            "received": "undefined",
+                                            "path": [
+                                                "name"
+                                            ],
+                                            "message": "Group name is required"
+                                        }
+                                    ],
+                                    "message": "Group name is required"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 500,
+                                    "statusCode": "Internal server error",
+                                    "error": "Internal server error",
+                                    "message": "Some message"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/groups/user/:id": {
+            "get": {
+                "tags": [
+                    "Group Chat"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "description": "ID User",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 1
+                    }
+                ],
+                "summary": "Ambil semua data group chat dari salah satu user",
+                "responses": {
+                    "200": {
+                        "description": "Respon sukses",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "code": 200,
+                                    "statusMessage": "success",
+                                    "data": [
+                                        {
+                                            "id": 1,
+                                            "authorId": 1,
+                                            "name": "Group daldas",
+                                            "image": "images\\groupchat\\1750214050120.jpg",
+                                            "createdAt": "2025-06-17T03:54:50.020Z",
+                                            "updatedAt": "2025-06-18T02:34:10.150Z",
+                                            "messages": [
+                                                {
+                                                    "id": 18,
+                                                    "groupId": 1,
+                                                    "authorId": 1,
+                                                    "content": "Message third edit",
+                                                    "image": null,
+                                                    "createdAt": "2025-06-19T04:28:18.803Z",
+                                                    "updatedAt": "2025-06-19T04:28:18.803Z",
+                                                    "author": {
+                                                        "name": "irzi",
+                                                        "id": 1
+                                                    }
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "id": 13,
+                                            "authorId": 1,
+                                            "name": "Group daldas",
+                                            "image": "",
+                                            "createdAt": "2025-06-20T03:35:54.023Z",
+                                            "updatedAt": "2025-06-20T03:35:54.023Z",
+                                            "messages": []
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                   "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 500,
+                                    "statusCode": "Internal server error",
+                                    "error": "Internal server error",
+                                    "message": "Some message"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/groups:id": {
+            "get": {
+                "tags": [
+                    "Group Chat"
+                ],
+                "summary": "Ambil detail data group chat",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "description": "ID Group",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 1
+                    }
+                ],                
+                "responses": {
+                    "200": {
+                        "description": "Respon sukses",
+                        "content": {
+                            "application/json": {
+                                "example": [{
+                                    "code": 200,
+                                    "statusMessage": "success",
+                                    "data": {
+                                        "code": 200,
+                                        "statusMessage": "success",
+                                        "data": {
+                                            "id": 1,
+                                            "authorId": 1,
+                                            "name": "Group daldas",
+                                            "image": "images\\groupchat\\1750214050120.jpg",
+                                            "createdAt": "2025-06-17T03:54:50.020Z",
+                                            "updatedAt": "2025-06-18T02:34:10.150Z",
+                                            "messages": [
+                                                {
+                                                    "id": 2,
+                                                    "groupId": 1,
+                                                    "authorId": 1,
+                                                    "content": "Message third edit",
+                                                    "image": null,
+                                                    "createdAt": "2025-06-17T04:01:12.322Z",
+                                                    "updatedAt": "2025-06-19T08:38:17.328Z",
+                                                    "author": {
+                                                        "id": 1,
+                                                        "name": "irzi",
+                                                        "avatar": null,
+                                                        "role": "admin"
+                                                    }
+                                                },
+                                                {
+                                                    "id": 3,
+                                                    "groupId": 1,
+                                                    "authorId": 1,
+                                                    "content": "Message third",
+                                                    "image": null,
+                                                    "createdAt": "2025-06-17T04:01:15.799Z",
+                                                    "updatedAt": "2025-06-17T04:01:15.799Z",
+                                                    "author": {
+                                                        "id": 1,
+                                                        "name": "irzi",
+                                                        "avatar": null,
+                                                        "role": "admin"
+                                                    }
+                                                },
+                                                {
+                                                    "id": 4,
+                                                    "groupId": 1,
+                                                    "authorId": 1,
+                                                    "content": "mybest",
+                                                    "image": null,
+                                                    "createdAt": "2025-06-19T03:30:03.620Z",
+                                                    "updatedAt": "2025-06-19T03:30:03.620Z",
+                                                    "author": {
+                                                        "id": 1,
+                                                        "name": "irzi",
+                                                        "avatar": null,
+                                                        "role": "admin"
+                                                    }
+                                                }
+                                            ]
+                                        }
+                                    }
+                                }]
+                            }
+                        }
+                    },
+                   "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 500,
+                                    "statusCode": "Internal server error",
+                                    "error": "Internal server error",
+                                    "message": "Some message"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Group Chat"
+                ],
+                "summary": "Update user",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "description": "ID Group",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 1
+                    }
+                ],                
+                "requestBody": {
+                    "required": true,
+                    "description": "",
+                    "content": {
+                        "application/json": {
+                            "examples": {
+                                "Update ada image": {
+                                    "description": "Kirim datanya pakai formdata!!",
+                                    "value": {
+                                        "authorId": 1,
+                                        "name": "Group 1 Edit",
+                                        "image": "....",
+                                        "newImage": "File"
+                                    }
+                                },
+                                "update biasa": {
+                                    "value": {
+                                        "authorId": 1,
+                                        "name": "Group 1 Edit",
+                                        "image": "...."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success Edit ",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 200,
+                                    "statusCode": "Success",
+                                    "data": {
+                                        "code": 200,
+                                        "statusMessage": "success",
+                                        "data": {
+                                            "id": 1,
+                                            "authorId": 1,
+                                            "name": "Group daldas eidt",
+                                            "image": "",
+                                            "createdAt": "2025-06-17T03:54:50.020Z",
+                                            "updatedAt": "2025-06-20T03:53:18.262Z"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "code": 400,
+                                    "statusMessage": "Bad Request",
+                                    "error": [
+                                        {
+                                            "code": "invalid_type",
+                                            "expected": "string",
+                                            "received": "undefined",
+                                            "path": [
+                                                "name"
+                                            ],
+                                            "message": "Group name is required"
+                                        }
+                                    ],
+                                    "message": "Group name is required"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 500,
+                                    "statusCode": "Internal server error",
+                                    "error": "Internal server error",
+                                    "message": "Some message"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Group Chat"
+                ],
+                "summary": "Hapus group",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "description": "ID Group",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 1
+                    }
+                ],                
+                "responses": {
+                    "200": {
+                        "description": "Respon sukses",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 200,
+                                    "statusCode": "Success",
+                                    "data": {
+                                    "code": 200,
+                                    "statusMessage": "success",
+                                    "data": {
+                                        "id": 13,
+                                        "authorId": 1,
+                                        "name": "Group daldas",
+                                        "image": "",
+                                        "createdAt": "2025-06-20T03:35:54.023Z",
+                                        "updatedAt": "2025-06-20T03:35:54.023Z"
+                                    }
+                                }
+                                }
+                                
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 500,
+                                    "statusCode": "Internal server error",
+                                    "error": "Internal server error",
+                                    "message": "Some message"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/groups/message/all": {
+            "get": {
+                "tags": [
+                    "Group Chat Message"
+                ],
+                "summary": "Ambil semua data message group",
+                "responses": {
+                    "200": {
+                        "description": "Respon sukses",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "code": 200,
+                                    "statusMessage": "success",
+                                    "data": [
+                                        {
+                                            "id": 2,
+                                            "groupId": 1,
+                                            "authorId": 1,
+                                            "content": "Message third edit",
+                                            "image": null,
+                                            "createdAt": "2025-06-17T04:01:12.322Z",
+                                            "updatedAt": "2025-06-19T08:38:17.328Z"
+                                        },
+                                        {
+                                            "id": 3,
+                                            "groupId": 1,
+                                            "authorId": 1,
+                                            "content": "Message third",
+                                            "image": null,
+                                            "createdAt": "2025-06-17T04:01:15.799Z",
+                                            "updatedAt": "2025-06-17T04:01:15.799Z"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                   "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 500,
+                                    "statusCode": "Internal server error",
+                                    "error": "Internal server error",
+                                    "message": "Some message"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/groups/message": {
+            "post": {
+                "tags": [
+                    "Group Chat Message"
+                ],
+                "summary": "Add Message ke group (Bukan socket)",
+                "requestBody": {
+                    "required": true,
+                    "description": "",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                            "authorId": 1,
+                            "groupId": 1,
+                            "content": "Message third",
+                            "image": "..."
+                        }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Respon Success ",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                "code": 200,
+                                "statusMessage": "success",
+                                "data": {
+                                    "id": 19,
+                                    "groupId": 1,
+                                    "authorId": 1,
+                                    "content": "Message third",
+                                    "image": null,
+                                    "createdAt": "2025-06-20T04:32:28.974Z",
+                                    "updatedAt": "2025-06-20T04:32:28.974Z"
+                                }
+                            }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                "code": 400,
+                                "statusMessage": "Bad Request",
+                                "error": [
+                                    {
+                                        "code": "invalid_type",
+                                        "expected": "string",
+                                        "received": "undefined",
+                                        "path": [
+                                            "content"
+                                        ],
+                                        "message": "Message content is required!"
+                                    }
+                                ],
+                                "message": "Message content is required!"
+                            }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 500,
+                                    "statusCode": "Internal server error",
+                                    "error": "Internal server error",
+                                    "message": "Some message"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/groups/message/:id": {
+            "put": {
+                "tags": [
+                    "Group Chat Message"
+                ],
+                "summary": "Add Message ke group (Bukan socket)",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "description": "ID Message",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 1
+                    }
+                ],                
+                "requestBody": {
+                    "required": true,
+                    "description": "",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                            "authorId": 1,
+                            "groupId": 1,
+                            "content": "Message third"
+                        }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Respon Success ",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                "code": 200,
+                                "statusMessage": "success",
+                                "data": {
+                                    "id": 19,
+                                    "groupId": 1,
+                                    "authorId": 1,
+                                    "content": "Message third",
+                                    "image": null,
+                                    "createdAt": "2025-06-20T04:32:28.974Z",
+                                    "updatedAt": "2025-06-20T04:32:28.974Z"
+                                }
+                            }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                "code": 400,
+                                "statusMessage": "Bad Request",
+                                "error": [
+                                    {
+                                        "code": "invalid_type",
+                                        "expected": "string",
+                                        "received": "undefined",
+                                        "path": [
+                                            "content"
+                                        ],
+                                        "message": "Message content is required!"
+                                    }
+                                ],
+                                "message": "Message content is required!"
+                            }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 500,
+                                    "statusCode": "Internal server error",
+                                    "error": "Internal server error",
+                                    "message": "Some message"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Group Chat Message"
+                ],
+                "summary": "Hapus group message",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "description": "ID Message ",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 1
+                    }
+                ],                
+                "responses": {
+                    "200": {
+                        "description": "Respon sukses",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "code": 200,
+                                    "statusMessage": "success",
+                                    "data": {
+                                        "id": 20,
+                                        "groupId": 1,
+                                        "authorId": 1,
+                                        "content": "Message third",
+                                        "image": "...",
+                                        "createdAt": "2025-06-20T04:35:59.347Z",
+                                        "updatedAt": "2025-06-20T04:35:59.347Z"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 500,
+                                    "statusCode": "Internal server error",
+                                    "error": "Internal server error",
+                                    "message": "Some message"
+                                }
+                            }
+                        }
+                    }
+                }
+            }            
+        }
+    }
+}

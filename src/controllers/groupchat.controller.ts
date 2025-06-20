@@ -71,7 +71,7 @@ export async function updateGroupChatHandle(req: Request, res: Response) {
         const { id } = req.params;
         const numberId = Number(id);
         const result = await updateGroupchat(numberId, req.body);
-        res.status(200).json(result)
+        res.status(200).json(successResponse(result))
     } catch (error) {
         const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
         console.error(errMessage)

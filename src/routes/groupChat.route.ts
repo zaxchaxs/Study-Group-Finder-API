@@ -5,7 +5,7 @@ import { validateCreateGroupchat, validateCreateGroupchatMessage, validateUpdate
 const router = Router();
 
 router.get("/", getAllGroupChatHandle);
-router.get("/user/:id", getUserGroupChatHandle);
+router.get("/user/:id", getUserGroupChatHandle); //
 router.get("/:id", getDetailGroupChatHandle);
 router.post("/", validateCreateGroupchat, postGroupChatHandle);
 router.put("/:id", validateUpdateGroupChat, updateGroupChatHandle);
