@@ -52,6 +52,6 @@ npx prisma generate
 ### 5. Dokumentasi API
 1. Install ekstension "OpenAPI (Swagger) Editor"
 2. Lalu cek file api-spec.json
-3. Jalankan file tersebut menggunakan Open Api Swagger
+3. Jalankan file tersebut menggunakan Open Api Swagger (Pakai Preview)
 
 ### 6. Dahs
