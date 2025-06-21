@@ -35,6 +35,8 @@ model User {
   privateChatsOne   PrivateChat[]     @relation("UserOne")
   privateChatsTwo   PrivateChat[]     @relation("UserTwo")
   privateMessages   PrivateChatMessage[]
+  todolists         Todolist[]
+  UserRank         UserRank[]
 
   @@map("user")
 }
@@ -109,4 +111,48 @@ model PrivateChatMessage {
   @@map("private_chat_message")
 }
 
+enum TodolistStatus {
+  completed
+  progress
+  uncompleted
+}
 
+model Todolist {
+  id Int @id @default(autoincrement())
+  userId Int
+  title String
+  description String @db.VarChar(255)
+  status TodolistStatus
+  priority Int
+  icon String
+  deadline String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model RankCategory {
+  id         Int        @id @default(autoincrement())
+  name       String
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  userRank   UserRank?  @relation("RankCategoryToUserRank")
+
+  @@map("rank_category")
+}
+
+
+model UserRank {
+  id           Int           @id @default(autoincrement())
+  userId       Int           @unique
+  rankId Int         @unique
+  rankValue    Int
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  rankCategory RankCategory  @relation("RankCategoryToUserRank", fields: [rankId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("user_rank")
+}
