@@ -121,7 +121,7 @@ model Todolist {
   id Int @id @default(autoincrement())
   userId Int
   title String
-  description String @db.VarChar(255)
+  description String? @db.VarChar(255)
   status TodolistStatus
   priority Int
   icon String
