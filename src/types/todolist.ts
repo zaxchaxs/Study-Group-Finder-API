@@ -7,6 +7,7 @@ export interface TodolistType {
   priority: number
   icon: string
   deadline: string
+  color: string
   createdAt: string
   updatedAt: string
 };
@@ -17,8 +18,9 @@ export interface PostTodolistType {
     description: string
     status: "completed" | "progress" | "uncompleted"
     priority: number
-    icon: string
+    icon: string;
     deadline: string
+    color: "blue" | 'dark_blue' | 'yellow' | 'black' | 'green',
 };
 
 export interface UpdateTodolistType {
@@ -28,4 +30,5 @@ export interface UpdateTodolistType {
     priority: number
     icon: string
     deadline: string
+    color: "blue" | 'dark_blue' | 'yellow' | 'black' | 'green',
 };
