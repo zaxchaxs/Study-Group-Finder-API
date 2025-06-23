@@ -9,9 +9,5 @@ export const generateToken = (payload: object, expiresIn?: number | StringValue,
 };
 
 export const verifyToken = (token: string) => {
-  try {
-    return jwt.verify(token, JWT_SECRET_KEY);
-  } catch (error) {
-    return null;
-  }
+  return jwt.verify(token, JWT_SECRET_KEY);
 };

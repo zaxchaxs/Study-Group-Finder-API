@@ -101,4 +101,25 @@ export async function loginUser(data: LoginUserType) {
       updatedAt: true
     }
   })
+};
+
+export async function changeUserPassword(id: number, password: string) {
+  return await prisma.user.update({
+    where: {
+      id
+    },
+    data: {
+      password
+    },
+    select: {
+      id: true,
+      email: true,
+      username: true,
+      name: true,
+      avatar: true,
+      role: true,
+      createdAt: true,
+      updatedAt: true
+    }
+  })
 }

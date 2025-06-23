@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import { Request, Response, NextFunction } from "express";
 import { errorResponse } from "../utils/response";
-import { loginUserSchema, registUserSchema, updateUserSchema } from "../schemas/user.schema";
+import { changePasswordSchema, loginUserSchema, registUserSchema, updateUserSchema, verifyUserTokenSchema } from "../schemas/user.schema";
 import prisma from "../configs/prismaClient";
 import { memoryUpload } from './multerFileUpload';
 import fs from "fs";
@@ -14,7 +14,8 @@ export async function validateRegistUser(req: Request, res: Response, next: Next
     try {
       const result = registUserSchema.safeParse(req.body)
       if (!result.success) {
-        res.status(400).json(errorResponse(400, 'Bad Request', JSON.parse(result.error.message), JSON.parse(result.error.message)[0].message));
+        const parsed = JSON.parse(result.error.message)
+        res.status(400).json(errorResponse(400, 'Bad Request', parsed, parsed[0]?.message));
         return;
       }
 
@@ -64,11 +65,12 @@ export async function validateUpdateUser(req: Request, res: Response, next: Next
       ...req.body,
       avatar: req.body.avatar === 'null' ? null : req.body.avatar
     }
-    
+
     try {
       const result = updateUserSchema.safeParse(newData);
       if (!result.success) {
-        res.status(400).json(errorResponse(400, 'Bad Request', JSON.parse(result.error.message), JSON.parse(result.error.message)[0].message));
+        const parsed = JSON.parse(result.error.message)
+        res.status(400).json(errorResponse(400, 'Bad Request', parsed, parsed[0]?.message));
         return;
       }
 
@@ -77,7 +79,7 @@ export async function validateUpdateUser(req: Request, res: Response, next: Next
         const file = files["newAvatar"][0];
         const dir = path.join("public/images/user");
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-        
+
         const ext = file.mimetype.split("/")[1] === "jpeg" ? "jpg" : file.mimetype.split("/")[1];
         const filename = `${Date.now()}.${ext}`;
         const fullPath = path.join(dir, filename);
@@ -105,7 +107,8 @@ export async function validateLoginUser(req: Request, res: Response, next: NextF
   try {
     const result = loginUserSchema.safeParse(req.body);
     if (!result.success) {
-      res.status(400).json(errorResponse(400, 'Bad Request', JSON.parse(result.error.message), JSON.parse(result.error.message)[0].message));
+      const parsed = JSON.parse(result.error.message)
+      res.status(400).json(errorResponse(400, 'Bad Request', parsed, parsed[0]?.message));
       return;
     }
     const user = await prisma.user.findUnique({
@@ -124,6 +127,57 @@ export async function validateLoginUser(req: Request, res: Response, next: NextF
       res.status(401).json(errorResponse(401, 'Unauthorized', "Unauthorized", "Wrong email or password"))
       return;
     }
+
+    next()
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const verifyTokenMiddleware = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const result = verifyUserTokenSchema.safeParse(req.body);
+    if (!result.success) {
+      const parsed = JSON.parse(result.error.message)
+      res.status(400).json(errorResponse(400, 'Bad Request', parsed, parsed[0]?.message));
+      return;
+    }
+    next()
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const verifyUserChangePassword = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = Number(req.params.id)
+
+    const result = changePasswordSchema.safeParse(req.body);
+    if (!result.success) {
+      const parsed = JSON.parse(result.error.message)
+      res.status(400).json(errorResponse(400, 'Bad Request', parsed, parsed[0]?.message));
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id
+      }
+    })
+
+    if (!user) {
+      res.status(404).json(errorResponse(404, 'Not Found', 'User not found. Maybe you send wrong user ID!', "User Not Found"));
+      return;
+    }
+
+    const isValidPassword = await bcrypt.compare(req.body.currentPassword, user.password)
+    if (!isValidPassword) {
+      res.status(401).json(errorResponse(401, 'Unauthorized', "Unauthorized", "Wrong Password"))
+      return;
+    };
+
+    const hashedPassword = await bcrypt.hash(req.body.newPassword, 10);
+    req.body.password = hashedPassword
 
     next()
   } catch (error) {

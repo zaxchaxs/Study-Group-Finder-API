@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { createUser, deleteUser, getAllUser, getUser, loginUser, updateUser } from "../services/user.service";
+import { changeUserPassword, createUser, deleteUser, getAllUser, getUser, loginUser, updateUser } from "../services/user.service";
 import { errorResponse, successResponse } from "../utils/response";
 import { JWT_REFRESH_SECRET_KEY, JWT_SECRET_KEY } from "../data/envData";
-import { generateToken } from "../utils/jwt";
+import { generateToken, verifyToken } from "../utils/jwt";
 import fs from "fs";
 
 
@@ -103,10 +103,39 @@ export async function loginUserHandle(req: Request, res: Response) {
         token,
         refreshToken
       }));
+      return;
     }
 
     res.status(404).json(errorResponse(404, 'not found', "Email or Password Wrong", "Email or Password Wrong!"))
 
+  } catch (error) {
+    const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error(errMessage)
+    res.status(500).json(
+      errorResponse(500, 'Internal Server Error', error, errMessage)
+    )
+  }
+}
+
+export const verifyUserTokenHandle = async (req: Request, res: Response) => {
+  const { token } = req.body;
+  try {
+    const result = verifyToken(token);
+    res.status(200).json(successResponse(result));
+  } catch (error) {
+    const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error(errMessage)
+    res.status(500).json(
+      errorResponse(500, 'Internal Server Error', error, errMessage)
+    )
+  }
+}
+
+export async function changeUserPasswordHandle(req: Request, res: Response) {
+  try {
+    const id = Number(req.params.id)
+    const result = await changeUserPassword(id, req.body.password);
+    res.status(200).json(successResponse(result));
   } catch (error) {
     const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
     console.error(errMessage)

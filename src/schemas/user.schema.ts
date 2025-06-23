@@ -21,3 +21,14 @@ export const loginUserSchema = z.object({
   email: z.string({ message: "email is required" }).email({ message: "invalid email format" }).max(191, { message: "email is too long" }),
   password: z.string({ message: "password is required" }).min(6, { message: "password should be at least 6 character" }).max(191, { message: "passwrod is too long" }),
 })
+
+export const verifyUserTokenSchema = z.object({
+    token: z.string({
+        message: "Token is required!"
+    })
+});
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string({message: "Current user password is required!"}),
+  newPassword: z.string({message: "New user password is required!"}),
+});
