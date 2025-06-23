@@ -1,5 +1,5 @@
 import prisma from "../configs/prismaClient";
-import { PostGroupchatMessageType, PostGroupchatType, UpdateGroupchatType } from "../types/groupchat";
+import { GroupchatMessageType, PostGroupchatMessageType, PostGroupchatType, UpdateGroupchatType } from "../types/groupchat";
 
 export async function getAllGroupChat() {
     const result = await prisma.groupChat.findMany({
@@ -41,7 +41,7 @@ export async function getUserGroupchat(id: number) {
     })
 }
 
-export async function getDetailGroupchat(id: number, showMessages?: boolean) {
+export async function getDetailGroupchat(id: number, showMessages?: boolean): DetailGroupChatReturnType {
     let include;
 
     if (showMessages) {
@@ -115,3 +115,13 @@ export async function deleteGroupchatMessage(id: number) {
         }
     })
 }
+
+type DetailGroupChatReturnType = Promise<{
+    id: number;
+    authorId: number;
+    name: string;
+    image: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    messages?: GroupchatMessageType[]
+} | null>

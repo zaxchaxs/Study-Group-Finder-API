@@ -2,10 +2,16 @@ import { Request, Response } from "express";
 import { errorResponse, successResponse } from "../utils/response";
 import { createGroupchat, deleteGroupchat, deleteGroupchatMessage, getAllGroupChat, getAllGroupchatMessage, getDetailGroupchat, getUserGroupchat, postGroupchatMessage, updateGroupchat, updateGroupchatMessage } from "../services/groupchat.service";
 import fs from "fs";
+import { decryptText, encryptText } from "../utils/messageEncript";
 
 export async function getAllGroupChatHandle(req: Request, res: Response) {
     try {
         const groups = await getAllGroupChat();
+        groups.forEach(group => {
+            group.messages.forEach(message => {
+                message.content = decryptText(message.content);
+            })
+        })
         res.status(200).json(successResponse(groups));
 
     } catch (error) {
@@ -22,6 +28,11 @@ export async function getUserGroupChatHandle(req: Request, res: Response) {
         const { id } = req.params;
         const numberId = Number(id);
         const groups = await getUserGroupchat(numberId)
+        groups.forEach(group => {
+            group.messages.forEach(message => {
+                message.content = decryptText(message.content);
+            })
+        })
         res.status(200).json(successResponse(groups))
 
     } catch (error) {
@@ -42,6 +53,11 @@ export async function getDetailGroupChatHandle(req: Request, res: Response) {
         const numberid = Number(id);
         
         const data = await getDetailGroupchat(numberid, showMessages == "true")
+        if(data?.messages) {
+            data.messages.forEach(message => {
+                message.content = decryptText(message.content)
+            })
+        }
         
         res.status(200).json(successResponse(data))
     } catch (error) {
@@ -117,7 +133,9 @@ export async function getAllGroupchatMessageHandle(req: Request, res: Response) 
 
 export async function postGroupchatMessageHandle(req: Request, res: Response) {
     try {
+        req.body.content = encryptText(req.body.content);
         const result = await postGroupchatMessage(req.body)
+        result.content = decryptText(result.content)
         res.status(200).json(successResponse(result));
 
     } catch (error) {
@@ -133,7 +151,9 @@ export async function updateGroupchatMessageHandle(req: Request, res: Response) 
     try {
         const { id } = req.params;
         const numberId = Number(id);
+        req.body.content = encryptText(req.body.content);
         const result = await updateGroupchatMessage(numberId, req.body)
+        result.content = decryptText(result.content)
         res.status(200).json(successResponse(result));
 
     } catch (error) {

@@ -5,6 +5,7 @@ import { getDetailPrivateChat, postPrivateChatMessage } from "../services/privat
 import { PostGroupchatMessageType } from "../types/groupchat";
 import { PostPrivateChatMessageType } from "../types/privatechat";
 import { addPrivateChatMessageSchema } from "../schemas/privatechat.schema";
+import { decryptText, encryptText } from "../utils/messageEncript";
 
 export function initSocket(io: Server) {
   io.on("connection", (socket: Socket) => {
@@ -17,6 +18,9 @@ export function initSocket(io: Server) {
         console.log(`Socket ${socket.id} joined group: ${groupId}`);
   
         const messages = await getGroupMessage(Number(groupId))
+        messages?.data.forEach(message => {
+          message.content = decryptText(message.content)
+        })
         socket.emit("groupChatMessage", messages)
         
       } catch (error) {
@@ -36,7 +40,8 @@ export function initSocket(io: Server) {
           ...data,
           groupId: Number(data.groupId),
           authorId: Number(data.authorId),
-          image: data.image === 'null' ? null : data.image
+          image: data.image === 'null' ? null : data.image,
+          content: encryptText(data.content)
         }
 
         const dataValidation = addGroupchatMessageSchema.safeParse(newData);
@@ -45,6 +50,7 @@ export function initSocket(io: Server) {
           const newMessage = await postGroupMessage(newData)
           if(newMessage) {
             // Emit to everyone in the room except sender
+            newMessage.content = decryptText(newMessage?.content)
             const groupId = newMessage.groupId.toString()
             io.to(groupId).emit("receiveGroupChatMessage", newMessage);
           } else {
@@ -82,6 +88,9 @@ export function initSocket(io: Server) {
         console.log(`Socket ${socket.id} joined private chat: ${chatId}`);
   
         const messages = await getDetailPrivateChat(Number(chatId))
+        messages?.messages.forEach(message => {
+          message.content = decryptText(message.content);
+        });
         socket.emit("privateChatMessage", messages)
         
       } catch (error) {
@@ -100,7 +109,8 @@ export function initSocket(io: Server) {
           ...data,
           chatId: Number(data.chatId),
           authorId: Number(data.authorId),
-          image: data.image === 'null' ? null : data.image
+          image: data.image === 'null' ? null : data.image,
+          content: encryptText(data.content)
         }
 
         const dataValidation = addPrivateChatMessageSchema.safeParse(newData);
@@ -109,7 +119,8 @@ export function initSocket(io: Server) {
           const newMessage = await postPrivateChatMessage(newData)
           if(newMessage) {
             // Emit to everyone in the room except sender
-            const chatId = newMessage.chatId.toString()
+            newMessage.content = decryptText(newMessage.content);
+            const chatId = newMessage.chatId.toString();
             io.to(chatId).emit("receivePrivateChatMessage", newMessage);
           } else {
             socket.emit("sendPrivateChatMessageError", {

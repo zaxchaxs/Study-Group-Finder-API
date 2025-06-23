@@ -1,3 +1,5 @@
+import { UserType } from "./user";
+
 export interface GroupchatType {
     id: number;
     authorId: number;
@@ -27,6 +29,7 @@ export interface GroupchatMessageType {
     authorId: number
     content: string
     image: string | null;
+    author?: UserType[]
     createdAt: string
     updatedAt: string
 }
