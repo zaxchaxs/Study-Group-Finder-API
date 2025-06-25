@@ -390,7 +390,7 @@
                 }
             }
         },
-        "/login": {
+        "/user/login": {
             "post": {
                 "tags": [
                     "Authentications"
@@ -479,6 +479,165 @@
                                     "statusCode": "Internal server error",
                                     "error": "Internal server error",
                                     "message": "Some message"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/user/verify-token": {
+            "post": {
+                "tags": [
+                    "Authentications"
+                ],
+                "summary": "Verify user token",
+                "requestBody": {
+                    "required": true,
+                    "description": "",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "token": "aadlasjdkasdl asjl"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success sukses ",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": 200,
+                                    "statusCode": "Success",
+                                    "data": {
+                                        "code": 200,
+                                        "statusMessage": "success",
+                                        "data": {
+                                            "id": 2,
+                                            "email": "irzirhmtllh@gmail.com",
+                                            "username": "irzirhmtllh",
+                                            "name": "irzi rahmatullah edit",
+                                            "avatar": "images\\user\\1750217651507.jpg",
+                                            "role": "user",
+                                            "createdAt": "2025-06-16T14:09:52.787Z",
+                                            "updatedAt": "2025-06-18T03:34:11.511Z",
+                                            "token": "random token",
+                                            "refreshToken": "random token"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "code": 400,
+                                    "statusMessage": "Bad Request",
+                                    "error": [
+                                        {
+                                            "code": "invalid_type",
+                                            "expected": "string",
+                                            "received": "undefined",
+                                            "path": [
+                                                "token"
+                                            ],
+                                            "message": "Token is required!"
+                                        }
+                                    ],
+                                    "message": "Token is required!"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "code": 500,
+                                    "statusMessage": "Internal Server Error",
+                                    "error": {
+                                        "name": "JsonWebTokenError",
+                                        "message": "invalid signature"
+                                    },
+                                    "message": "invalid signature"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/user/change-password": {
+            "post": {
+                "tags": [
+                    "Authentications"
+                ],
+                "summary": "Change user password",
+                "requestBody": {
+                    "required": true,
+                    "description": "",
+                    "content": {
+                        "application/json": {
+                            "example": {
+                                "currentPassword": "zaxchaxs123",
+                                "newPassword": "admin123"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success sukses ",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "code": 200,
+                                    "statusMessage": "success",
+                                    "data": {
+                                        "id": 2,
+                                        "email": "zaxchaxs@gmail.com",
+                                        "username": "zaxchaxs",
+                                        "name": "Zaxchax",
+                                        "avatar": null,
+                                        "role": "admin",
+                                        "createdAt": "2025-06-22T14:19:01.916Z",
+                                        "updatedAt": "2025-06-23T07:27:01.867Z"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "code": 401,
+                                    "statusMessage": "Unauthorized",
+                                    "error": "Unauthorized",
+                                    "message": "Wrong Password"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "code": 500,
+                                    "statusMessage": "Internal Server Error",
+                                    "error": {
+                                        "name": "JsonWebTokenError",
+                                        "message": "invalid signature"
+                                    },
+                                    "message": "invalid signature"
                                 }
                             }
                         }

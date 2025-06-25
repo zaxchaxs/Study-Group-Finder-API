@@ -23,7 +23,7 @@ if (!myUserId || !chatId) {
     // --- Langkah 1: Kirim event untuk menginisialisasi atau bergabung ke private chat ---
     // Server akan menemukan atau membuat PrivateChat dan mengembalikan chatId dan riwayat pesan
     chatHeader.innerText = `Establishing chat with user ${chatId}...`;
-    socket.emit("privateChat", chatId);
+    socket.emit("private chat", chatId);
 }
 
 // --- Event Listeners dari Server ---
@@ -45,7 +45,7 @@ socket.on("sendPrivateChatMessageError", (error) => {
 
 // Event yang dipancarkan server setelah PrivateChat ditemukan/dibuat dan user bergabung ke room
 // Ini juga akan mengirimkan riwayat pesan awal
-socket.on("privateChatMessage", (data) => {
+socket.on("private chat message", (data) => {
     console.log("Private chat initialized:", data);
     currentChatId = data.id;
     chatHeader.innerText = `Chatting with: ${myUserId === data.userOne.id ? data.userOne.name : data.userTwo.name}`;
@@ -62,7 +62,7 @@ socket.on("privateChatMessage", (data) => {
 });
 
 // Event untuk menerima pesan baru secara realtime
-socket.on("receivePrivateChatMessage", (message) => {
+socket.on("receive new private chat message", (message) => {
     console.log("New private message received:", message);
     appendMessage(message, myUserId);
     scrollToBottom();
@@ -106,7 +106,7 @@ messageForm.addEventListener("submit", function (e) {
     }
 
     // Kirim event sendPrivateChatMessage ke server
-    socket.emit("sendPrivateChatMessage", {
+    socket.emit("send private chat message", {
         chatId: currentChatId,
         authorId: Number(myUserId), // Pastikan authorId adalah number
         content: content,

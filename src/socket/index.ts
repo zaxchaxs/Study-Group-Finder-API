@@ -1,20 +1,20 @@
 import { Server, Socket } from "socket.io";
 import { getGroupMessage, postGroupMessage } from "../services/message.service";
 import { addGroupchatMessageSchema } from "../schemas/groupchat.schema";
-import { getDetailPrivateChat, postPrivateChatMessage } from "../services/privatechat.service";
+import { getDetailPrivateChat, getUserPrivateChat, postPrivateChatMessage } from "../services/privatechat.service";
 import { PostGroupchatMessageType } from "../types/groupchat";
 import { PostPrivateChatMessageType } from "../types/privatechat";
 import { addPrivateChatMessageSchema } from "../schemas/privatechat.schema";
 import { decryptText, encryptText } from "../utils/messageEncript";
 
-export function initSocket(io: Server) {
-  io.on("connection", (socket: Socket) => {
+export async function initSocket(io: Server) {
+  io.on("connection", async (socket: Socket) => {
     console.log(`User connected: ${socket.id}`);
 
     // Join to room (for group chat)
     socket.on("groupChat", async (groupId: string) => {
       try {
-        socket.join(groupId);
+        await socket.join(groupId);
         console.log(`Socket ${socket.id} joined group: ${groupId}`);
   
         const messages = await getGroupMessage(Number(groupId))
@@ -52,9 +52,9 @@ export function initSocket(io: Server) {
             // Emit to everyone in the room except sender
             newMessage.content = decryptText(newMessage?.content)
             const groupId = newMessage.groupId.toString()
-            io.to(groupId).emit("receiveGroupChatMessage", newMessage);
+            await io.to(groupId).emit("receiveGroupChatMessage", newMessage);
           } else {
-            socket.emit("sendGroupChatMessageError", {
+            await socket.emit("sendGroupChatMessageError", {
               status: 500,
               statusCode: "Internal Server Error",
               message: "Failed send message",
@@ -63,7 +63,7 @@ export function initSocket(io: Server) {
           }
         } else {
           const parsedMessage = dataValidation.error
-          socket.emit("sendGroupChatMessageError", {
+          await socket.emit("sendGroupChatMessageError", {
             status: 400,
             statusCode: "Bad Request",
             message: parsedMessage.message,
@@ -71,7 +71,7 @@ export function initSocket(io: Server) {
           })
         }
       } catch (error) {
-        socket.emit("sendGroupChatMessageError", {
+        await socket.emit("sendGroupChatMessageError", {
             status: 500,
             statusCode: "Internal Server Error",
             message: "Internal Server Error",
@@ -81,30 +81,39 @@ export function initSocket(io: Server) {
     });
 
     
+    // ### Private Chats ###
     // Join to room (for personal)
-    socket.on("privateChat", async (chatId: string) => {
+    socket.on("private chat", async (chatId: string) => {
       try {
-        socket.join(chatId);
+        await socket.join(chatId);
         console.log(`Socket ${socket.id} joined private chat: ${chatId}`);
-  
+        
+        const userPrivateChats = await getUserPrivateChat(Number(chatId));
+        userPrivateChats.forEach(chat => {
+          if(chat.messages[0]) {
+            chat.messages[0].content = decryptText(chat.messages[0].content);
+          }
+        });
+        socket.emit("get user private chat", userPrivateChats);
+
         const messages = await getDetailPrivateChat(Number(chatId))
         messages?.messages.forEach(message => {
           message.content = decryptText(message.content);
         });
-        socket.emit("privateChatMessage", messages)
+        socket.emit("get detail private chat message", messages)
         
       } catch (error) {
-        socket.emit("privateChatError", {
+        socket.emit("get detail private chat message error", {
             status: 500,
-            message: "Interna Server Error",
+            statusMessage: "Internal Server Error",
+            message: "Internal Server Error",
             error: error as Error
         })
       }
     });
 
-    socket.on("sendPrivateChatMessage", async (data: PostPrivateChatMessageType) => {
+    socket.on("send private chat message", async (data: PostPrivateChatMessageType) => {
       try {
-        
         const newData = {
           ...data,
           chatId: Number(data.chatId),
@@ -118,12 +127,11 @@ export function initSocket(io: Server) {
         if(dataValidation.success) {
           const newMessage = await postPrivateChatMessage(newData)
           if(newMessage) {
-            // Emit to everyone in the room except sender
             newMessage.content = decryptText(newMessage.content);
             const chatId = newMessage.chatId.toString();
-            io.to(chatId).emit("receivePrivateChatMessage", newMessage);
+             io.to(chatId).emit("receive new private chat message", newMessage); // Kirim ke semua klien di room ini
           } else {
-            socket.emit("sendPrivateChatMessageError", {
+            socket.emit("send private chat message error", {
               status: 500,
               statusCode: "Internal Server Error",
               message: "Failed send message",
@@ -132,7 +140,7 @@ export function initSocket(io: Server) {
           }
         } else {
           const parsedMessage = dataValidation.error
-          socket.emit("sendPrivateChatMessageError", {
+          socket.emit("send private chat message error", {
             status: 400,
             statusCode: "Bad Request",
             message: parsedMessage.message,
@@ -140,7 +148,7 @@ export function initSocket(io: Server) {
           })
         }
       } catch (error) {
-        socket.emit("sendPrivateChatMessageError", {
+        socket.emit("send private chat message error", {
             status: 500,
             statusCode: "Internal Server Error",
             message: "Internal Server Error",
