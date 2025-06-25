@@ -3,6 +3,7 @@ import { errorResponse, successResponse } from "../utils/response";
 import { createPrivateChat, deletePrivateChat, deletePrivateChatMessage, getAllPrivateChat, getAllPrivateChatMessage, getDetailPrivateChat, getUserPrivateChat, getUserPrivateChatMessage, postPrivateChatMessage, updatePrivateChatMessage } from "../services/privatechat.service";
 import fs from "fs";
 import { decryptText, encryptText } from "../utils/messageEncript";
+import { getLastMessageTimestamp } from "../utils/chatUtils";
 
 export async function getAllPrivateChatHandle(req: Request, res: Response) {
     try {
@@ -36,6 +37,11 @@ export async function getUserPrivateChatHandle(req: Request, res: Response) {
                 message.content = decryptText(message.content);
             })
         });
+        result.sort((a, b) => {
+            const timeA = getLastMessageTimestamp(a);
+            const timeB = getLastMessageTimestamp(b);
+            return timeB - timeA
+        })
         res.status(200).json(successResponse(result))
 
     } catch (error) {

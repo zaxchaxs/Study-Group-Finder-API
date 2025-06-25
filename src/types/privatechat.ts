@@ -2,8 +2,8 @@ export interface PrivateChatType {
     id: number;
     userIdOne: number;
     userIdTwo: number;
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Date;
+    updatedAt: Date;
     messages?: PrivateChatMessageType[]
 }
 
@@ -13,8 +13,8 @@ export interface PrivateChatMessageType {
     authorId: number;
     content: string;
     image: string | null;
-    createdAt: string
-    updatedAt: string
+    createdAt: Date
+    updatedAt: Date
 };
 
 export interface PostPrivateChatType {

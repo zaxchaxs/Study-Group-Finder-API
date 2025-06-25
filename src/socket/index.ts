@@ -114,17 +114,21 @@ export async function initSocket(io: Server) {
 
     socket.on("send private chat message", async (data: PostPrivateChatMessageType) => {
       try {
-        const newData = {
+        let newData = {
           ...data,
           chatId: Number(data.chatId),
           authorId: Number(data.authorId),
           image: data.image === 'null' ? null : data.image,
-          content: encryptText(data.content)
         }
 
         const dataValidation = addPrivateChatMessageSchema.safeParse(newData);
 
         if(dataValidation.success) {
+          newData = {
+            ...newData,
+            content: encryptText(data.content)
+          }
+          
           const newMessage = await postPrivateChatMessage(newData)
           if(newMessage) {
             newMessage.content = decryptText(newMessage.content);
