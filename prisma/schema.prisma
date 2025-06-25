@@ -118,11 +118,11 @@ enum TodolistStatus {
 }
 
 enum TodolistColor {
-  blue
+  cyan
   dark_blue
   yellow
   black
-  green
+  sage
 }
 
 model Todolist {
