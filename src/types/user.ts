@@ -23,6 +23,7 @@ export interface UpdateUserType {
     email: string
     name: string
     avatar: string | null
+    newAvatar: string | null
     role: "admin" | "user";
 }
 

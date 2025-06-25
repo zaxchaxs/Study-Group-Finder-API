@@ -12,7 +12,7 @@ export async function initSocket(io: Server) {
     console.log(`User connected: ${socket.id}`);
 
     // Join to room (for group chat)
-    socket.on("groupChat", async (groupId: string) => {
+    socket.on("group chat", async (groupId: string) => {
       try {
         await socket.join(groupId);
         console.log(`Socket ${socket.id} joined group: ${groupId}`);
@@ -21,10 +21,10 @@ export async function initSocket(io: Server) {
         messages?.data.forEach(message => {
           message.content = decryptText(message.content)
         })
-        socket.emit("groupChatMessage", messages)
+        socket.emit("get detail group chat message", messages)
         
       } catch (error) {
-        socket.emit("groupChatError", {
+        socket.emit("get detail group chat message error", {
             status: 500,
             message: "Internar Server Error",
             error: error as Error
@@ -33,7 +33,7 @@ export async function initSocket(io: Server) {
     });
 
     // Handle send group message
-    socket.on("sendGroupChatMessage", async (data: PostGroupchatMessageType) => {
+    socket.on("send group chat message", async (data: PostGroupchatMessageType) => {
       try {
         
         const newData = {
@@ -52,9 +52,9 @@ export async function initSocket(io: Server) {
             // Emit to everyone in the room except sender
             newMessage.content = decryptText(newMessage?.content)
             const groupId = newMessage.groupId.toString()
-            await io.to(groupId).emit("receiveGroupChatMessage", newMessage);
+            await io.to(groupId).emit("receive new group chat message", newMessage);
           } else {
-            await socket.emit("sendGroupChatMessageError", {
+            await socket.emit("send group chat message error", {
               status: 500,
               statusCode: "Internal Server Error",
               message: "Failed send message",
@@ -63,7 +63,7 @@ export async function initSocket(io: Server) {
           }
         } else {
           const parsedMessage = dataValidation.error
-          await socket.emit("sendGroupChatMessageError", {
+          await socket.emit("send group chat message error", {
             status: 400,
             statusCode: "Bad Request",
             message: parsedMessage.message,
@@ -71,7 +71,7 @@ export async function initSocket(io: Server) {
           })
         }
       } catch (error) {
-        await socket.emit("sendGroupChatMessageError", {
+        await socket.emit("send group chat message error", {
             status: 500,
             statusCode: "Internal Server Error",
             message: "Internal Server Error",
