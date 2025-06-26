@@ -8,6 +8,7 @@ export interface TodolistType {
   icon: string
   deadline: string
   color: string
+  isChecked: boolean
   createdAt: string
   updatedAt: string
 };
@@ -20,6 +21,7 @@ export interface PostTodolistType {
     priority: number
     icon: string;
     deadline: string
+    isChecked: boolean
     color: "cyan" | 'dark_blue' | 'yellow' | 'black' | 'sage',
 };
 
@@ -30,5 +32,6 @@ export interface UpdateTodolistType {
     priority: number
     icon: string
     deadline: string
+    isChecked: boolean
     color: "cyan" | 'dark_blue' | 'yellow' | 'black' | 'sage',
 };

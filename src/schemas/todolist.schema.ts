@@ -7,6 +7,7 @@ export const addTodolistSchema = z.object({
     status: z.enum(["completed", "progress", "uncompleted"]),
     priority: z.number({ message: "Priority is required" }),
     icon: z.string().optional(),
+    isChecked: z.boolean().default(false),
     deadline: z.string({ message: "Deadline todolist is required" }).max(191, { message: "Deadline timeline is too long" }),
     color: z.enum(["cyan", 'dark_blue', 'yellow','black', 'sage']),
 });

@@ -134,6 +134,7 @@ model Todolist {
   priority Int
   icon String
   deadline String
+  isChecked Boolean @default(false)
   color TodolistColor @default(black)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
