@@ -118,11 +118,11 @@ enum TodolistStatus {
 }
 
 enum TodolistColor {
-  blue
+  cyan
   dark_blue
   yellow
   black
-  green
+  sage
 }
 
 model Todolist {
@@ -134,6 +134,7 @@ model Todolist {
   priority Int
   icon String
   deadline String
+  isChecked Boolean @default(false)
   color TodolistColor @default(black)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

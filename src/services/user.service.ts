@@ -123,3 +123,21 @@ export async function changeUserPassword(id: number, password: string) {
     }
   })
 }
+
+export async function getUserByUsn(username: string) {
+  return await prisma.user.findUnique({
+    where: {
+      username
+    },
+    select: {
+      id: true,
+      email: true,
+      username: true,
+      name: true,
+      avatar: true,
+      role: true,
+      createdAt: true,
+      updatedAt: true,
+    }
+  })
+}

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { changeUserPassword, createUser, deleteUser, getAllUser, getUser, loginUser, updateUser } from "../services/user.service";
+import { changeUserPassword, createUser, deleteUser, getAllUser, getUser, loginUser, updateUser, getUserByUsn } from "../services/user.service";
 import { errorResponse, successResponse } from "../utils/response";
 import { JWT_REFRESH_SECRET_KEY, JWT_SECRET_KEY } from "../data/envData";
 import { generateToken, verifyToken } from "../utils/jwt";
@@ -31,7 +31,7 @@ export async function getUserHandle(req: Request, res: Response) {
       return;
     }
 
-    res.status(404).json(errorResponse(404, 'Not Found', "User Not Found", "Email or Password Wrong!"))
+    res.status(404).json(errorResponse(404, 'Not Found', "User Not Found", "Id Wrong!"))
 
   } catch (error) {
     const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
@@ -136,6 +136,27 @@ export async function changeUserPasswordHandle(req: Request, res: Response) {
     const id = Number(req.params.id)
     const result = await changeUserPassword(id, req.body.password);
     res.status(200).json(successResponse(result));
+  } catch (error) {
+    const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error(errMessage)
+    res.status(500).json(
+      errorResponse(500, 'Internal Server Error', error, errMessage)
+    )
+  }
+}
+
+export async function getUserByUsnHandle(req: Request, res: Response) {
+  try {
+    const { username } = req.params;
+    const result = await getUserByUsn(username)
+
+    if (result) {
+      res.status(200).json(successResponse(result));
+      return;
+    }
+
+    res.status(404).json(errorResponse(404, 'Not Found', "User Not Found", "Username Wrong!"))
+
   } catch (error) {
     const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
     console.error(errMessage)
