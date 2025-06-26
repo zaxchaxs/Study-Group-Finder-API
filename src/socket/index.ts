@@ -21,8 +21,6 @@ export async function initSocket(io: Server) {
         messages?.data.forEach(message => {
           message.content = decryptText(message.content)
         })
-        console.log(messages);
-        
         socket.emit("get detail group chat message", messages)
         
       } catch (error) {

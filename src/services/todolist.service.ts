@@ -47,11 +47,3 @@ export async function deleteTodolist(id: number) {
         }
     })
 }
-
-export async function getCheckedTodolist(isChecked: boolean) {
-    return await prisma.todolist.findMany({
-        where: {
-            
-        }
-    })
-}
