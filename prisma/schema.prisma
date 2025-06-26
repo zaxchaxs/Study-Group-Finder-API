@@ -76,8 +76,8 @@ model GroupChatMember {
   groupId  Int
   userId   Int
 
-  group    GroupChat @relation(fields: [groupId], references: [id])
-  user     User      @relation(fields: [userId], references: [id])
+  group    GroupChat @relation(fields: [groupId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("group_chat_member")
 }

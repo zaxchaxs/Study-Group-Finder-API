@@ -20,6 +20,31 @@ export async function getAllGroupChat() {
     return result
 }
 
+export async function getJoindedUserGroupChat(userId: number) {
+    return await prisma.groupChatMember.findMany({
+        where: {
+            userId
+        },
+        include: {
+            group: {
+                include: {
+                    messages: {
+                        include: {
+                            author: {
+                                select: { name: true, id: true, }
+                            }
+                        },
+                        take: 1,
+                        orderBy: {
+                            "createdAt": "desc"
+                        }
+                    }
+                }
+            },
+        }
+    })
+}
+
 export async function getUserGroupchat(id: number) {
     return await prisma.groupChat.findMany({
         where: {
@@ -29,7 +54,7 @@ export async function getUserGroupchat(id: number) {
             messages: {
                 include: {
                     author: {
-                        select: { name: true, id: true, username: true, avatar: true, role: true}
+                        select: { name: true, id: true, username: true, avatar: true, role: true }
                     }
                 },
                 take: 1,
@@ -67,6 +92,15 @@ export async function getDetailGroupchat(id: number, showMessages?: boolean): De
 export async function createGroupchat(data: PostGroupchatType) {
     return await prisma.groupChat.create({ data })
 };
+
+export async function insertUserToGroupMember(groupId: number, userId: number) {
+    return await prisma.groupChatMember.create({
+        data: {
+            groupId,
+            userId
+        }
+    })
+}
 
 export async function updateGroupchat(id: number, data: UpdateGroupchatType) {
     return await prisma.groupChat.update({

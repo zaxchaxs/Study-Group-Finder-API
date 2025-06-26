@@ -38,8 +38,8 @@ export async function getUserPrivateChatHandle(req: Request, res: Response) {
             })
         });
         result.sort((a, b) => {
-            const timeA = getLastMessageTimestamp(a);
-            const timeB = getLastMessageTimestamp(b);
+            const timeA = getLastMessageTimestamp(a.messages[0]?.createdAt);
+            const timeB = getLastMessageTimestamp(b.messages[0]?.createdAt);
             return timeB - timeA
         })
         res.status(200).json(successResponse(result))

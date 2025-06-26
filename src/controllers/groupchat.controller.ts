@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import { errorResponse, successResponse } from "../utils/response";
-import { createGroupchat, deleteGroupchat, deleteGroupchatMessage, getAllGroupChat, getAllGroupchatMessage, getDetailGroupchat, getUserGroupchat, postGroupchatMessage, updateGroupchat, updateGroupchatMessage } from "../services/groupchat.service";
+import { createGroupchat, deleteGroupchat, deleteGroupchatMessage, getAllGroupChat, getAllGroupchatMessage, getDetailGroupchat, getJoindedUserGroupChat, getUserGroupchat, insertUserToGroupMember, postGroupchatMessage, updateGroupchat, updateGroupchatMessage } from "../services/groupchat.service";
 import fs from "fs";
 import { decryptText, encryptText } from "../utils/messageEncript";
+import { getLastMessageTimestamp } from "../utils/chatUtils";
 
 export async function getAllGroupChatHandle(req: Request, res: Response) {
     try {
@@ -21,6 +22,35 @@ export async function getAllGroupChatHandle(req: Request, res: Response) {
         })
         res.status(200).json(successResponse(groups));
 
+    } catch (error) {
+        const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+        console.error(errMessage)
+        res.status(500).json(
+            errorResponse(500, 'Internal Server Error', error, errMessage)
+        )
+    }
+}
+
+export async function getJoinedUserGroupChatHandle(req: Request, res: Response) {
+    try {
+        const { id } = req.params;
+        const host = `${req.protocol}://${req.get("host")}`
+        const numberId = Number(id);
+        const result = await getJoindedUserGroupChat(numberId)
+        result.forEach(data => {
+            if (data.group.image) {
+                data.group.image =  `${host}/${data.group.image}`
+            };
+            data.group.messages.forEach(message => {
+                message.content = decryptText(message.content)
+            })
+        });
+        result.sort((a, b) => {
+            const timeA = getLastMessageTimestamp(a.group.messages[0]?.createdAt);
+            const timeB = getLastMessageTimestamp(b.group.messages[0]?.createdAt);
+            return timeB - timeA
+        })
+        res.status(200).json(successResponse(result))
     } catch (error) {
         const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
         console.error(errMessage)
@@ -95,6 +125,7 @@ export async function postGroupChatHandle(req: Request, res: Response) {
         const host = `${req.protocol}://${req.get("host")}`
         
         const result = await createGroupchat(req.body);
+        await insertUserToGroupMember(result.id, req.body.authorId)
         if(result.image) {
             result.image = `${host}/${result.image}`
         }
@@ -111,8 +142,6 @@ export async function postGroupChatHandle(req: Request, res: Response) {
 
 export async function updateGroupChatHandle(req: Request, res: Response) {
     try {
-        console.log("marsh", req.body);
-        
         const { id } = req.params;
         const host = `${req.protocol}://${req.get("host")}`
         const numberId = Number(id);
