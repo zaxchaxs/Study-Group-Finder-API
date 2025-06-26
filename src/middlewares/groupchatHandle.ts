@@ -35,9 +35,10 @@ export async function validateCreateGroupchat(req: Request, res: Response, next:
 
                 fs.writeFileSync(fullPath, file.buffer);
                 
-                req.body.image = path.join("images/groupchat", filename);
+                data.image = path.join("images/groupchat", filename);
             }
-            req.body.authorId = data.authorId
+            
+            req.body= data;
             next()
 
         } catch (error) {
@@ -49,14 +50,14 @@ export async function validateCreateGroupchat(req: Request, res: Response, next:
 export async function validateUpdateGroupChat(req: Request, res: Response, next: NextFunction) {
     memoryUpload([{ name: "newImage", maxCount: 1 }])(req, res, async error => {
         if (error) return next(error);
-
         try {
+            
             const data = {
                 ...req.body,
                 authorId: Number(req.body.authorId),
                 image: req.body.image === 'null' ? null : req.body.image
-            }
-
+            };
+            
             const result = updateGroupChatSchema.safeParse(data);
             if (!result.success) {
                 const parsed = JSON.parse(result.error.message)
@@ -81,10 +82,9 @@ export async function validateUpdateGroupChat(req: Request, res: Response, next:
                     console.error("#irzi ignore this: ", error);
                 });
 
-                req.body.image = path.join("images/groupchat", filename)
+                data.image = path.join("images/groupchat", filename)
             }
-
-            req.body.authorId = data.authorId
+            req.body = data
 
             next()
         } catch (error) {

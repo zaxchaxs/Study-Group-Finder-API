@@ -6,10 +6,17 @@ import { decryptText, encryptText } from "../utils/messageEncript";
 
 export async function getAllGroupChatHandle(req: Request, res: Response) {
     try {
+        const host = `${req.protocol}://${req.get("host")}`
         const groups = await getAllGroupChat();
         groups.forEach(group => {
+            if(group.image) {
+                group.image = `${host}/${group.image}`
+            }
             group.messages.forEach(message => {
                 message.content = decryptText(message.content);
+                if(message.image) {
+                    message.image = `${host}/${message.image}`
+                }
             })
         })
         res.status(200).json(successResponse(groups));
@@ -26,11 +33,18 @@ export async function getAllGroupChatHandle(req: Request, res: Response) {
 export async function getUserGroupChatHandle(req: Request, res: Response) {
     try {
         const { id } = req.params;
+        const host = `${req.protocol}://${req.get("host")}`
         const numberId = Number(id);
         const groups = await getUserGroupchat(numberId)
         groups.forEach(group => {
+            if(group.image) {
+                group.image = `${host}/${group.image}`
+            }
             group.messages.forEach(message => {
                 message.content = decryptText(message.content);
+                if(message.image) {
+                    message.image = `${host}/${message.image}`
+                }
             })
         })
         res.status(200).json(successResponse(groups))
@@ -48,14 +62,21 @@ export async function getUserGroupChatHandle(req: Request, res: Response) {
 export async function getDetailGroupChatHandle(req: Request, res: Response) {
     try {
         const { id } = req.params
+        const host = `${req.protocol}://${req.get("host")}`
         const { showMessages } = req.query;
-
+        
         const numberid = Number(id);
         
         const data = await getDetailGroupchat(numberid, showMessages == "true")
+        if(data?.image) {
+            data.image = `${host}/${data.image}`
+        }
         if(data?.messages) {
             data.messages.forEach(message => {
                 message.content = decryptText(message.content)
+                if(message.image) {
+                    message.image = `${host}/${message.image}`
+                }
             })
         }
         
@@ -71,8 +92,14 @@ export async function getDetailGroupChatHandle(req: Request, res: Response) {
 
 export async function postGroupChatHandle(req: Request, res: Response) {
     try {
+        const host = `${req.protocol}://${req.get("host")}`
+        
         const result = await createGroupchat(req.body);
+        if(result.image) {
+            result.image = `${host}/${result.image}`
+        }
         res.status(200).json(successResponse(result))
+
     } catch (error) {
         const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
         console.error(errMessage)
@@ -84,10 +111,18 @@ export async function postGroupChatHandle(req: Request, res: Response) {
 
 export async function updateGroupChatHandle(req: Request, res: Response) {
     try {
+        console.log("marsh", req.body);
+        
         const { id } = req.params;
+        const host = `${req.protocol}://${req.get("host")}`
         const numberId = Number(id);
+        
         const result = await updateGroupchat(numberId, req.body);
+        if(result.image) {
+            result.image = `${host}/${result.image}`
+        }
         res.status(200).json(successResponse(result))
+        
     } catch (error) {
         const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
         console.error(errMessage)
@@ -101,6 +136,7 @@ export async function deleteGroupChatHandle(req: Request, res: Response) {
     try {
         const { id } = req.params;
         const numberId = Number(id);
+
         const result = await deleteGroupchat(numberId);
         fs.unlink(`public/${result.image}`, err => {
             console.error("#irzi ignore this: ", err);

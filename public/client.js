@@ -5,15 +5,15 @@ const username = params.get("username");
 const room = params.get("room");
 
 document.getElementById("roomTitle").innerText = `Room: ${room}`;
-socket.emit("groupChat", room);
+socket.emit("group chat", room);
 
 // error listen
-socket.on("sendGroupChatMessageError", error => {
+socket.on("send group chat message error", error => {
   console.error(error);
 });
 
 // Terima pesan dari server
-socket.on("groupChatMessage", (messages) => {
+socket.on("get detail group chat message", (messages) => {
   console.log("Received messages:", messages);
 
   const chatBox = document.getElementById("chatBox");
@@ -57,7 +57,7 @@ socket.on("groupChatMessage", (messages) => {
 });
 
 // listen new message
-socket.on("receiveGroupChatMessage", message => {
+socket.on("receive new group chat message", message => {
   console.log("New message received:", message);
 
   const chatBox = document.getElementById("chatBox");
@@ -80,7 +80,7 @@ document.getElementById("messageForm").addEventListener("submit", function (e) {
   e.preventDefault();
   const messageInput = document.getElementById("messageInput");
   const message = messageInput.value;
-  socket.emit("sendGroupChatMessage", {
+  socket.emit("send group chat message", {
     groupId: room,
     authorId: username,
     content: message,

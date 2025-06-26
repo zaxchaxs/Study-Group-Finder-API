@@ -29,7 +29,7 @@ export async function getUserGroupchat(id: number) {
             messages: {
                 include: {
                     author: {
-                        select: { name: true, id: true, }
+                        select: { name: true, id: true, username: true, avatar: true, role: true}
                     }
                 },
                 take: 1,
