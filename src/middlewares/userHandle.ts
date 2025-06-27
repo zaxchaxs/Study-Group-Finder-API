@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import { Request, Response, NextFunction } from "express";
 import { errorResponse } from "../utils/response";
-import { changePasswordSchema, loginUserSchema, registUserSchema, updateUserSchema, verifyUserTokenSchema } from "../schemas/user.schema";
+import { changePasswordSchema, loginUserSchema, registUserSchema, requestFriendSchema, updateFriendRequsetStatusSchema, updateUserSchema, verifyUserTokenSchema } from "../schemas/user.schema";
 import prisma from "../configs/prismaClient";
 import { memoryUpload } from './multerFileUpload';
 import fs from "fs";
@@ -158,7 +158,7 @@ export const verifyUserChangePassword = async (req: Request, res: Response, next
       res.status(400).json(errorResponse(400, 'Bad Request', parsed, parsed[0]?.message));
       return;
     }
-
+    
     const user = await prisma.user.findUnique({
       where: {
         id
@@ -180,6 +180,36 @@ export const verifyUserChangePassword = async (req: Request, res: Response, next
     req.body.password = hashedPassword
 
     next()
+  } catch (error) {
+    next(error)
+  }
+};
+
+export const validateRequestFriend = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const result = requestFriendSchema.safeParse(req.body);
+    if (!result.success) {
+      const parsed = JSON.parse(result.error.message)
+      res.status(400).json(errorResponse(400, 'Bad Request', parsed, parsed[0]?.message));
+      return;
+    };
+    next()
+    
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const validateUpdateStatusFriendRequest = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const result = updateFriendRequsetStatusSchema.safeParse(req.body);
+    if (!result.success) {
+      const parsed = JSON.parse(result.error.message)
+      res.status(400).json(errorResponse(400, 'Bad Request', parsed, parsed[0]?.message));
+      return;
+    };
+    next()
+
   } catch (error) {
     next(error)
   }

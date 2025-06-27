@@ -31,3 +31,20 @@ export interface LoginUserType {
     email: string
     password: string
 }
+
+export interface UserFriend {
+    id: number;
+    username: string;
+    name: string;
+    avatar: string | null;
+    role: "admin" | "user"
+    createdAt: string;
+    updatedAt: string;
+}
+
+export enum FriendStatusEnum {
+  PENDING = "PENDING",
+  ACCEPTED = "ACCEPTED",
+  BLOCKED = "BLOCKED",
+  REJECTED = "REJECTED",
+}

@@ -1,5 +1,6 @@
+import { FriendStatus, Prisma } from "@prisma/client";
 import prisma from "../configs/prismaClient";
-import { LoginUserType, PostUserType, UpdateUserType } from "../types/user";
+import { FriendStatusEnum, LoginUserType, PostUserType, UpdateUserType, UserFriend } from "../types/user";
 
 export async function getAllUser() {
   return await prisma.user.findMany({
@@ -16,11 +17,9 @@ export async function getAllUser() {
   });
 }
 
-export async function getUser(id: number) {
+export async function getUser(whereClause: Prisma.UserWhereUniqueInput) {
   return await prisma.user.findUnique({
-    where: {
-      id
-    },
+    where: whereClause,
     select: {
       id: true,
       email: true,
@@ -138,6 +137,132 @@ export async function getUserByUsn(username: string) {
       role: true,
       createdAt: true,
       updatedAt: true,
+    }
+  })
+}
+
+
+// FriendShip
+export async function getUserFriends(whereClause: Prisma.UserWhereUniqueInput, status?: FriendStatusEnum) {
+  prisma.user.findUnique({
+    where: whereClause,
+  })
+  const friendRelations = await prisma.user.findUnique({
+    where: whereClause,
+    select: {
+      friendsInitiated: { // User sebagai requester
+        where: { status: status || "ACCEPTED" },
+        select: {
+          receiver: { // Pilih detail teman(yang menerima permintaan user)
+            select: { id: true, username: true, name: true, avatar: true },
+          },
+        },
+      },
+      friendsReceived: { // User sebagai receiver
+        where: { status: status || "ACCEPTED" },
+        select: {
+          requester: { // Pilih detail teman saya (permintaan user)
+            select: { id: true, username: true, name: true, avatar: true },
+          },
+        },
+      },
+    },
+  });
+
+  if (!friendRelations) {
+    return []
+  };
+
+  const allFriends: any[] = [];
+
+  // Tambahkan teman dari permintaan yang saya kirim
+  friendRelations.friendsInitiated.forEach(fs => {
+    if (fs.receiver) {
+      allFriends.push(fs.receiver);
+    }
+  });
+
+  // Tambahkan teman dari permintaan yang saya terima
+  friendRelations.friendsReceived.forEach(fs => {
+    if (fs.requester) {
+      // Pastikan tidak ada duplikasi jika pengguna mem-query dirinya sendiri atau ada kasus edge lainnya
+      // Meskipun dengan desain status ACCEPTED, duplikasi seharusnya tidak terjadi.
+      // Namun, untuk jaga-jaga, bisa pakai Set atau filter manual.
+      if (!allFriends.some(f => f.id === fs.requester.id)) {
+        allFriends.push(fs.requester);
+      }
+    }
+  });
+
+  return allFriends;
+};
+
+export async function requestFriend(data: { requesterId: number, receiverId: number }) {
+  const receiver = await prisma.user.findUnique({
+    where: { id: data.receiverId },
+    select: { id: true },
+  });
+  if (!receiver) {
+    throw new Error("Receiver user not found");
+  };
+  const existingFriendship = await prisma.friendship.findFirst({
+    where: {
+      OR: [
+        {
+          requesterId: data.requesterId,
+          receiverId: data.receiverId,
+        },
+        {
+          requesterId: data.receiverId, // Jika receiver sudah pernah mengirim request ke requester
+          receiverId: data.requesterId,
+        },
+      ],
+      NOT: {
+        status: FriendStatus.REJECTED // Abaikan jika sudah pernah ditolak (jika Anda menyimpannya)
+      }
+    },
+  });
+  if (existingFriendship) {
+    if (existingFriendship.status === FriendStatus.PENDING) {
+      throw new Error("Friend request already sent or pending acceptance.");
+    }
+    if (existingFriendship.status === FriendStatus.ACCEPTED) {
+      throw new Error("Already friends.");
+    }
+    if (existingFriendship.status === FriendStatus.BLOCKED) {
+      throw new Error("Cannot send request, blocked by user.");
+    }
+  }
+
+  // Buat permintaan pertemanan baru
+  return await prisma.friendship.create({
+    data: {
+      ...data,
+      status: FriendStatus.PENDING,
+    },
+  });
+}
+
+export async function AcceptRequestFriend(data: { requesterId: number, receiverId: number, status: FriendStatus }) {
+  const friendship = await prisma.friendship.findUnique({
+    where: { id: data.requesterId },
+  });
+  if (!friendship) {
+    throw new Error("Friend request not found.");
+  }
+  if (friendship.receiverId !== data.receiverId) {
+    throw new Error('Unauthorized: You are not the receiver of this request.');
+  }
+  return await prisma.friendship.update({
+    where: { id: data.requesterId },
+    data: { status: data.status },
+  });
+};
+
+export async function deleteRequestFriend(id: number) {
+  return await prisma.friendship.delete({
+    where: {
+      id
     }
   })
 }

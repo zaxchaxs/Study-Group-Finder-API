@@ -29,6 +29,11 @@ model User {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
+  // FriendsInitiated: Permintaan pertemanan yang saya kirim (saya adalah `requesterId`)
+  friendsInitiated   Friendship[]         @relation("UserRequests")
+  // FriendsReceived: Permintaan pertemanan yang saya terima (saya adalah `receiverId`)
+  friendsReceived    Friendship[]         @relation("UserReceives")
+
   groupChats        GroupChat[]       @relation("GroupAuthor")
   groupMessages     GroupChatMessage[]
   groupMemberships  GroupChatMember[]
@@ -39,6 +44,31 @@ model User {
   UserRank         UserRank[]
 
   @@map("user")
+}
+
+enum FriendStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
+  REJECTED
+}
+
+model Friendship {
+  id          Int           @id @default(autoincrement())
+  requesterId Int        // ID pengguna yang mengirim permintaan pertemanan
+  receiverId  Int        // ID pengguna yang menerima permintaan pertemanan
+  status      FriendStatus  @default(PENDING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relasi balik ke model User
+  requester  User       @relation("UserRequests", fields: [requesterId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  receiver   User       @relation("UserReceives", fields: [receiverId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  // Menjamin tidak ada duplikasi permintaan pertemanan antara dua user
+  @@unique([requesterId, receiverId])
+
+  @@map("friendship")
 }
 
 model GroupChat {

@@ -32,3 +32,14 @@ export const changePasswordSchema = z.object({
   currentPassword: z.string({message: "Current user password is required!"}),
   newPassword: z.string({message: "New user password is required!"}),
 });
+
+export const requestFriendSchema =  z.object({
+  requesterId	: z.number({message: "Requester ID required!"}),
+  receiverId: z.number({message: "Receiver ID is required!"}),
+});
+
+export const updateFriendRequsetStatusSchema =  z.object({
+  requesterId	: z.number({message: "Requester ID required!"}),
+  receiverId: z.number({message: "Receiver ID is required!"}),
+  status: z.enum(["PENDING", "ACCEPTED", "BLOCKED", "REJECTED"])
+});

@@ -1,14 +1,20 @@
 import { Request, Response } from "express";
-import { changeUserPassword, createUser, deleteUser, getAllUser, getUser, loginUser, updateUser, getUserByUsn } from "../services/user.service";
+import { changeUserPassword, createUser, deleteUser, getAllUser, getUser, loginUser, updateUser, getUserByUsn, getUserFriends, requestFriend, AcceptRequestFriend, deleteRequestFriend } from "../services/user.service";
 import { errorResponse, successResponse } from "../utils/response";
 import { JWT_REFRESH_SECRET_KEY, JWT_SECRET_KEY } from "../data/envData";
 import { generateToken, verifyToken } from "../utils/jwt";
 import fs from "fs";
-
+import { FriendStatusEnum } from "../types/user";
 
 export async function getAllUserHandle(req: Request, res: Response) {
   try {
+    const host = `${req.protocol}://${req.get("host")}`
     const users = await getAllUser();
+    users.forEach(user => {
+      if (user.avatar) {
+        user.avatar = `${host}/${user.avatar}`
+      }
+    })
     res.status(200).json(successResponse(users))
 
   } catch (error) {
@@ -22,11 +28,17 @@ export async function getAllUserHandle(req: Request, res: Response) {
 
 export async function getUserHandle(req: Request, res: Response) {
   try {
+    const host = `${req.protocol}://${req.get("host")}`
     const { id } = req.params;
     const numberId = Number(id)
-    const result = await getUser(numberId)
+    const result = await getUser({
+      id: numberId
+    })
 
     if (result) {
+      if (result.avatar) {
+        result.avatar = `${host}/${result.avatar}`
+      }
       res.status(200).json(successResponse(result));
       return;
     }
@@ -44,7 +56,11 @@ export async function getUserHandle(req: Request, res: Response) {
 
 export async function postUserHandler(req: Request, res: Response) {
   try {
+    const host = `${req.protocol}://${req.get("host")}`
     const user = await createUser(req.body);
+    if (user.avatar) {
+      user.avatar = `${host}/${user.avatar}`
+    }
 
     res.status(200).json(successResponse(user));
   } catch (error) {
@@ -58,9 +74,13 @@ export async function postUserHandler(req: Request, res: Response) {
 
 export async function updateUserHandle(req: Request, res: Response) {
   try {
+    const host = `${req.protocol}://${req.get("host")}`
     const { id } = req.params;
     const numberId = Number(id)
     const result = await updateUser(numberId, req.body)
+    if (result.avatar) {
+      result.avatar = `${host}/${result.avatar}`;
+    };
     res.status(200).json(successResponse(result))
 
   } catch (error) {
@@ -93,10 +113,14 @@ export async function deleteUserHandle(req: Request, res: Response) {
 
 export async function loginUserHandle(req: Request, res: Response) {
   try {
+    const host = `${req.protocol}://${req.get("host")}`
     const result = await loginUser(req.body);
     if (result) {
       const token = generateToken(result)
       const refreshToken = generateToken(result, "7d", JWT_REFRESH_SECRET_KEY);
+      if (result.avatar) {
+        result.avatar = `${host}/${result.avatar}`;
+      }
 
       res.status(200).json(successResponse({
         ...result,
@@ -147,15 +171,120 @@ export async function changeUserPasswordHandle(req: Request, res: Response) {
 
 export async function getUserByUsnHandle(req: Request, res: Response) {
   try {
+    const host = `${req.protocol}://${req.get("host")}`
     const { username } = req.params;
-    const result = await getUserByUsn(username)
+    const result = await getUserByUsn(username);
 
     if (result) {
+      result.avatar = `${host}/${result.avatar}`
       res.status(200).json(successResponse(result));
       return;
     }
 
     res.status(404).json(errorResponse(404, 'Not Found', "User Not Found", "Username Wrong!"))
+
+  } catch (error) {
+    const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error(errMessage)
+    res.status(500).json(
+      errorResponse(500, 'Internal Server Error', error, errMessage)
+    )
+  }
+}
+
+// ## user Friendship handle
+export async function getUserFriendsHandle(req: Request, res: Response) {
+  try {
+
+    let { byUsername, status } = req.query;
+
+    if (status && typeof status === 'string') {
+      const upperCaseStatus = status.toUpperCase();
+      if (upperCaseStatus !== FriendStatusEnum.PENDING &&
+        upperCaseStatus !== FriendStatusEnum.ACCEPTED &&
+        upperCaseStatus !== FriendStatusEnum.BLOCKED &&
+        upperCaseStatus !== FriendStatusEnum.REJECTED
+      ) {
+        res.status(400).json(errorResponse(400, 'Bad Request', "Invalid Status", `Status '${status}' is not allowed.`));
+        return;
+      }
+      status = upperCaseStatus
+    }
+
+    const identifier = req.params.indentifier;
+    const host = `${req.protocol}://${req.get("host")}`
+
+    let user;
+
+    if (byUsername == "true") {
+      user = await getUser({
+        username: identifier
+      })
+    } else {
+      user = await getUser({
+        id: Number(identifier)
+      })
+    }
+
+    if (!user) {
+      res.status(404).json(errorResponse(404, 'Not Found', "User Not Found", "User Not Found"))
+      return
+    }
+
+    const result = await getUserFriends({
+      id: user.id
+    }, status as FriendStatusEnum)
+    result.forEach((user) => {
+      if (user.avatar) {
+        user.avatar = `${host}/${user.avatar}`
+      };
+    })
+
+    res.status(200).json(successResponse(result))
+
+  } catch (error) {
+    const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error(errMessage)
+    res.status(500).json(
+      errorResponse(500, 'Internal Server Error', error, errMessage)
+    )
+  }
+}
+
+export async function requestFriendHandle(req: Request, res: Response) {
+  try {
+    const result = await requestFriend(req.body);
+    res.status(200).json(successResponse(result))
+
+  } catch (error) {
+    const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error(errMessage)
+    res.status(500).json(
+      errorResponse(500, 'Internal Server Error', error, errMessage)
+    )
+  }
+};
+
+
+export async function updateFriendRequestStatusHandle(req: Request, res: Response) {
+  try {
+    const result = await AcceptRequestFriend(req.body);
+    res.status(200).json(successResponse(result))
+
+  } catch (error) {
+    const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error(errMessage)
+    res.status(500).json(
+      errorResponse(500, 'Internal Server Error', error, errMessage)
+    )
+  }
+}
+
+export async function deleteUserFriendRequestHandle(req: Request, res: Response) {
+  try {
+    const id = Number(req.params.indentifier)
+    const result = await deleteRequestFriend(id)
+    res.status(200).json(successResponse(result))
 
   } catch (error) {
     const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
