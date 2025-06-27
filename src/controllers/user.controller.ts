@@ -81,7 +81,13 @@ export async function updateUserHandle(req: Request, res: Response) {
     if (result.avatar) {
       result.avatar = `${host}/${result.avatar}`;
     };
-    res.status(200).json(successResponse(result))
+    const token = generateToken(result)
+    const refreshToken = generateToken(result, "30d", JWT_REFRESH_SECRET_KEY);
+    res.status(200).json(successResponse({
+      ...result,
+      token,
+      refreshToken
+    }))
 
   } catch (error) {
     const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
