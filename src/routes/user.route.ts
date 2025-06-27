@@ -15,6 +15,7 @@ router.post("/verify-token", verifyTokenMiddleware, verifyUserTokenHandle)
 router.post("/change-password/:id", verifyUserChangePassword, changeUserPasswordHandle)
 
 // friend
+router.get("/friends", getUserFriendsHandle);
 router.get("/friends/:indentifier", getUserFriendsHandle);
 router.post("/friends", validateRequestFriend, requestFriendHandle);
 router.post("/friends/status", validateUpdateStatusFriendRequest, updateFriendRequestStatusHandle);

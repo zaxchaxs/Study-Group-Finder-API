@@ -5,11 +5,31 @@ import { JWT_REFRESH_SECRET_KEY, JWT_SECRET_KEY } from "../data/envData";
 import { generateToken, verifyToken } from "../utils/jwt";
 import fs from "fs";
 import { FriendStatusEnum } from "../types/user";
+import { Prisma } from "@prisma/client";
 
 export async function getAllUserHandle(req: Request, res: Response) {
   try {
     const host = `${req.protocol}://${req.get("host")}`
-    const users = await getAllUser();
+    const { name } = req.query;
+
+    let whereClause: Prisma.UserWhereInput = {};
+    if (name && typeof name === 'string') {
+      whereClause = {
+        OR: [
+          {
+            username: {
+              contains: name
+            }
+          },
+          {
+            name: {
+              contains: name
+            }
+          }
+        ]
+      }
+    }
+    const users = await getAllUser(whereClause);
     users.forEach(user => {
       if (user.avatar) {
         user.avatar = `${host}/${user.avatar}`

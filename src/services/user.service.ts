@@ -2,8 +2,9 @@ import { FriendStatus, Prisma } from "@prisma/client";
 import prisma from "../configs/prismaClient";
 import { FriendStatusEnum, LoginUserType, PostUserType, UpdateUserType, UserFriend } from "../types/user";
 
-export async function getAllUser() {
+export async function getAllUser(whereClause?: Prisma.UserWhereInput) {
   return await prisma.user.findMany({
+    where: whereClause,
     select: {
       id: true,
       email: true,
