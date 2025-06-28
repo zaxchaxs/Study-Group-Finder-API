@@ -38,6 +38,14 @@ export async function getJoindedUserGroupChat(userId: number) {
                         orderBy: {
                             "createdAt": "desc"
                         }
+                    },
+                    members: {
+                        select: {
+                            groupId: true,
+                            userId: true,
+                            user: {
+                                select: {id: true, name: true, username: true, avatar: true}
+                        }}
                     }
                 }
             },

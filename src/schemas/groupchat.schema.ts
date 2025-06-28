@@ -6,6 +6,14 @@ export const addGroupChatSchema = z.object({
   image: z.string().max(255).optional(),
 });
 
+export const addMemberIntoGroupchatSchema = z.object({
+  userId: z.number({ message: "User ID is required" }),
+})
+
+export const addManyMemberIntoGroupchatSchema = z.object({
+  userId: z.array(z.number({message: "User Ids in array should be number!"})),
+})
+
 export const updateGroupChatSchema = z.object({
   authorId: z.number({ message: "Author is required" }),
   name: z.string({ message: "Group name is required" }).min(4).max(191, { message: "Group name is too long" }),

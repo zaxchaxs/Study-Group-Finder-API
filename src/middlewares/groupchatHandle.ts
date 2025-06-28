@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { addGroupchatMessageSchema, addGroupChatSchema, updateGroupchatMessageSchema, updateGroupChatSchema } from "../schemas/groupchat.schema";
+import { addGroupchatMessageSchema, addGroupChatSchema, addManyMemberIntoGroupchatSchema, addMemberIntoGroupchatSchema, updateGroupchatMessageSchema, updateGroupChatSchema } from "../schemas/groupchat.schema";
 import { errorResponse } from "../utils/response";
 import { memoryUpload } from "./multerFileUpload";
 import fs from "fs";
@@ -34,11 +34,11 @@ export async function validateCreateGroupchat(req: Request, res: Response, next:
                 const fullPath = path.join(dir, filename);
 
                 fs.writeFileSync(fullPath, file.buffer);
-                
+
                 data.image = path.join("images/groupchat", filename);
             }
-            
-            req.body= data;
+
+            req.body = data;
             next()
 
         } catch (error) {
@@ -51,13 +51,13 @@ export async function validateUpdateGroupChat(req: Request, res: Response, next:
     memoryUpload([{ name: "newImage", maxCount: 1 }])(req, res, async error => {
         if (error) return next(error);
         try {
-            
+
             const data = {
                 ...req.body,
                 authorId: Number(req.body.authorId),
                 image: req.body.image === 'null' ? null : req.body.image
             };
-            
+
             const result = updateGroupChatSchema.safeParse(data);
             if (!result.success) {
                 const parsed = JSON.parse(result.error.message)
@@ -91,6 +91,28 @@ export async function validateUpdateGroupChat(req: Request, res: Response, next:
             next(error)
         }
     })
+}
+
+export async function validateAddMemberIntoGroupchat(req: Request, res: Response, next: NextFunction) {
+    try {
+
+        let result;
+        if (req.query && req.query.manyMember === 'true') {
+            const userIdsArray = JSON.parse(req.body.userId);
+            result = addManyMemberIntoGroupchatSchema.safeParse({ ...req.body, userId: userIdsArray });
+        } else {
+            result = addMemberIntoGroupchatSchema.safeParse(req.body);
+        }
+
+        if (!result.success) {
+            res.status(400).json(errorResponse(400, 'Bad Request', JSON.parse(result.error.message), JSON.parse(result.error.message)[0].message));
+            return;
+        }
+
+        next();
+    } catch (error) {
+        next(error)
+    }
 }
 
 // message

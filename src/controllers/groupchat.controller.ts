@@ -4,18 +4,19 @@ import { createGroupchat, deleteGroupchat, deleteGroupchatMessage, getAllGroupCh
 import fs from "fs";
 import { decryptText, encryptText } from "../utils/messageEncript";
 import { getLastMessageTimestamp } from "../utils/chatUtils";
+import prisma from "../configs/prismaClient";
 
 export async function getAllGroupChatHandle(req: Request, res: Response) {
     try {
         const host = `${req.protocol}://${req.get("host")}`
         const groups = await getAllGroupChat();
         groups.forEach(group => {
-            if(group.image) {
+            if (group.image) {
                 group.image = `${host}/${group.image}`
             }
             group.messages.forEach(message => {
                 message.content = decryptText(message.content);
-                if(message.image) {
+                if (message.image) {
                     message.image = `${host}/${message.image}`
                 }
             })
@@ -39,7 +40,7 @@ export async function getJoinedUserGroupChatHandle(req: Request, res: Response) 
         const result = await getJoindedUserGroupChat(numberId)
         result.forEach(data => {
             if (data.group.image) {
-                data.group.image =  `${host}/${data.group.image}`
+                data.group.image = `${host}/${data.group.image}`
             };
             data.group.messages.forEach(message => {
                 message.content = decryptText(message.content)
@@ -67,12 +68,12 @@ export async function getUserGroupChatHandle(req: Request, res: Response) {
         const numberId = Number(id);
         const groups = await getUserGroupchat(numberId)
         groups.forEach(group => {
-            if(group.image) {
+            if (group.image) {
                 group.image = `${host}/${group.image}`
             }
             group.messages.forEach(message => {
                 message.content = decryptText(message.content);
-                if(message.image) {
+                if (message.image) {
                     message.image = `${host}/${message.image}`
                 }
             })
@@ -94,22 +95,22 @@ export async function getDetailGroupChatHandle(req: Request, res: Response) {
         const { id } = req.params
         const host = `${req.protocol}://${req.get("host")}`
         const { showMessages } = req.query;
-        
+
         const numberid = Number(id);
-        
+
         const data = await getDetailGroupchat(numberid, showMessages == "true")
-        if(data?.image) {
+        if (data?.image) {
             data.image = `${host}/${data.image}`
         }
-        if(data?.messages) {
+        if (data?.messages) {
             data.messages.forEach(message => {
                 message.content = decryptText(message.content)
-                if(message.image) {
+                if (message.image) {
                     message.image = `${host}/${message.image}`
                 }
             })
         }
-        
+
         res.status(200).json(successResponse(data))
     } catch (error) {
         const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
@@ -123,11 +124,56 @@ export async function getDetailGroupChatHandle(req: Request, res: Response) {
 export async function postGroupChatHandle(req: Request, res: Response) {
     try {
         const host = `${req.protocol}://${req.get("host")}`
-        
+
         const result = await createGroupchat(req.body);
         await insertUserToGroupMember(result.id, req.body.authorId)
-        if(result.image) {
+        if (result.image) {
             result.image = `${host}/${result.image}`
+        }
+        res.status(200).json(successResponse(result))
+
+    } catch (error) {
+        const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+        console.error(errMessage)
+        res.status(500).json(
+            errorResponse(500, 'Internal Server Error', error, errMessage)
+        )
+    }
+}
+
+export async function addUserIntoMemberGroupchatHandle(req: Request, res: Response) {
+    try {
+        const groupId = parseInt(req.params.id);
+        let result;
+        
+        if (req.query && req.query.manyMember === 'true') {
+            const userIdsToAdd: number[] = JSON.parse(req.body.userId);
+            userIdsToAdd.map(async (id) => {
+
+                const existingMembers = await prisma.groupChatMember.findFirst({
+                    where: {
+                        userId: id
+                    }
+                })
+
+                if(existingMembers && existingMembers.id === id) {
+                    console.error("Some user already in group");
+                } else {
+                    await insertUserToGroupMember(groupId, id);
+                }
+            });
+            result = null;
+        } else {
+            const existingMembers = await prisma.groupChatMember.findFirst({
+                    where: {
+                        userId: req.body.userId
+                    }
+            })
+            if(existingMembers && existingMembers.id === req.body.userId) {
+                res.status(409).json(errorResponse(409, 'Conflict', "Conflict", "User already joined into group"));
+                return;
+            }
+            result = await insertUserToGroupMember(groupId, req.body.userId)
         }
         res.status(200).json(successResponse(result))
 
@@ -145,13 +191,13 @@ export async function updateGroupChatHandle(req: Request, res: Response) {
         const { id } = req.params;
         const host = `${req.protocol}://${req.get("host")}`
         const numberId = Number(id);
-        
+
         const result = await updateGroupchat(numberId, req.body);
-        if(result.image) {
+        if (result.image) {
             result.image = `${host}/${result.image}`
         }
         res.status(200).json(successResponse(result))
-        
+
     } catch (error) {
         const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
         console.error(errMessage)
@@ -171,7 +217,7 @@ export async function deleteGroupChatHandle(req: Request, res: Response) {
             console.error("#irzi ignore this: ", err);
         })
         res.status(200).json(successResponse(result));
-        
+
     } catch (error) {
         const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
         console.error(errMessage)
@@ -235,13 +281,13 @@ export async function deleteGroupchatMessageHandle(req: Request, res: Response) 
         const { id } = req.params;
         const numberId = Number(id);
         const result = await deleteGroupchatMessage(numberId);
-        if(result.image) {
+        if (result.image) {
             fs.unlink(`public/${result.image}`, err => {
                 console.error("#irzi ignore this: ", err);
             })
         }
         res.status(200).json(successResponse(result));
-        
+
     } catch (error) {
         const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
         console.error(errMessage)

@@ -148,11 +148,19 @@ export async function getUserFriends(whereClause: Prisma.UserWhereUniqueInput, s
   prisma.user.findUnique({
     where: whereClause,
   })
+
+  let whereStatusCondition: Prisma.FriendshipWhereInput = {};
+  if(status) {
+    whereStatusCondition = {
+      status: status
+    }
+  }
+  
   const friendRelations = await prisma.user.findUnique({
     where: whereClause,
     select: {
       friendsInitiated: { // User sebagai requester
-        where: { status: status || "ACCEPTED" },
+        where: whereStatusCondition,
         select: {
           receiver: { // Pilih detail teman(yang menerima permintaan user)
             select: { id: true, username: true, name: true, avatar: true },
@@ -160,7 +168,7 @@ export async function getUserFriends(whereClause: Prisma.UserWhereUniqueInput, s
         },
       },
       friendsReceived: { // User sebagai receiver
-        where: { status: status || "ACCEPTED" },
+        where: whereStatusCondition,
         select: {
           requester: { // Pilih detail teman saya (permintaan user)
             select: { id: true, username: true, name: true, avatar: true },
@@ -245,8 +253,14 @@ export async function requestFriend(data: { requesterId: number, receiverId: num
 }
 
 export async function AcceptRequestFriend(data: { requesterId: number, receiverId: number, status: FriendStatus }) {
-  const friendship = await prisma.friendship.findUnique({
-    where: { id: data.requesterId },
+  const friendship = await prisma.friendship.findFirst({
+    // where: { id: data.requesterId },
+    where: {
+      AND: [
+        {requesterId: data.requesterId},
+        {receiverId: data.receiverId}
+      ]
+    }
   });
   if (!friendship) {
     throw new Error("Friend request not found.");
@@ -255,7 +269,9 @@ export async function AcceptRequestFriend(data: { requesterId: number, receiverI
     throw new Error('Unauthorized: You are not the receiver of this request.');
   }
   return await prisma.friendship.update({
-    where: { id: data.requesterId },
+    where: {
+      id: friendship.id
+    },
     data: { status: data.status },
   });
 };

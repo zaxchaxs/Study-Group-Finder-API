@@ -43,8 +43,8 @@ export interface UserFriend {
 }
 
 export enum FriendStatusEnum {
-  PENDING = "PENDING",
-  ACCEPTED = "ACCEPTED",
-  BLOCKED = "BLOCKED",
-  REJECTED = "REJECTED",
+    PENDING = "PENDING",
+    ACCEPTED = "ACCEPTED",
+    BLOCKED = "BLOCKED",
+    REJECTED = "REJECTED",
 }
