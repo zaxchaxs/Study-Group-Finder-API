@@ -95,7 +95,6 @@ export async function validateUpdateGroupChat(req: Request, res: Response, next:
 
 export async function validateAddMemberIntoGroupchat(req: Request, res: Response, next: NextFunction) {
     try {
-
         let result;
         if (req.query && req.query.manyMember === 'true') {
             const userIdsArray = JSON.parse(req.body.userId);

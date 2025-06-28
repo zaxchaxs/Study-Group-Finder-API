@@ -149,14 +149,12 @@ export async function addUserIntoMemberGroupchatHandle(req: Request, res: Respon
         if (req.query && req.query.manyMember === 'true') {
             const userIdsToAdd: number[] = JSON.parse(req.body.userId);
             userIdsToAdd.map(async (id) => {
-
                 const existingMembers = await prisma.groupChatMember.findFirst({
                     where: {
                         userId: id
                     }
                 })
-
-                if(existingMembers && existingMembers.id === id) {
+                if(existingMembers && existingMembers.userId === id) {
                     console.error("Some user already in group");
                 } else {
                     await insertUserToGroupMember(groupId, id);
