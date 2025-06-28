@@ -165,6 +165,7 @@ export async function getUserFriends(whereClause: Prisma.UserWhereUniqueInput, s
           receiver: { // Pilih detail teman(yang menerima permintaan user)
             select: { id: true, username: true, name: true, avatar: true },
           },
+          status: true
         },
       },
       friendsReceived: { // User sebagai receiver
@@ -173,6 +174,7 @@ export async function getUserFriends(whereClause: Prisma.UserWhereUniqueInput, s
           requester: { // Pilih detail teman saya (permintaan user)
             select: { id: true, username: true, name: true, avatar: true },
           },
+          status: true
         },
       },
     },
@@ -183,11 +185,10 @@ export async function getUserFriends(whereClause: Prisma.UserWhereUniqueInput, s
   };
 
   const allFriends: any[] = [];
-
   // Tambahkan teman dari permintaan yang saya kirim
   friendRelations.friendsInitiated.forEach(fs => {
     if (fs.receiver) {
-      allFriends.push(fs.receiver);
+      allFriends.push({...fs.receiver, status: fs.status});
     }
   });
 
@@ -198,7 +199,7 @@ export async function getUserFriends(whereClause: Prisma.UserWhereUniqueInput, s
       // Meskipun dengan desain status ACCEPTED, duplikasi seharusnya tidak terjadi.
       // Namun, untuk jaga-jaga, bisa pakai Set atau filter manual.
       if (!allFriends.some(f => f.id === fs.requester.id)) {
-        allFriends.push(fs.requester);
+        allFriends.push({...fs.requester, status: fs.status});
       }
     }
   });
