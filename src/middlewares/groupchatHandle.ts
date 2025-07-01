@@ -4,6 +4,7 @@ import { errorResponse } from "../utils/response";
 import { memoryUpload } from "./multerFileUpload";
 import fs from "fs";
 import path from "path";
+import prisma from "../configs/prismaClient";
 
 export async function validateCreateGroupchat(req: Request, res: Response, next: NextFunction) {
     memoryUpload([{ name: "image", maxCount: 1 }])(req, res, async err => {
@@ -36,6 +37,8 @@ export async function validateCreateGroupchat(req: Request, res: Response, next:
                 fs.writeFileSync(fullPath, file.buffer);
 
                 data.image = path.join("images/groupchat", filename);
+            } else {
+                data.image = null;
             }
 
             req.body = data;
@@ -78,9 +81,22 @@ export async function validateUpdateGroupChat(req: Request, res: Response, next:
                 fs.writeFileSync(fullPath, file.buffer);
 
                 // delete image lama
-                fs.unlink(`public/${data.image}`, (error) => {
-                    console.error("#irzi ignore this: ", error);
+                const oldData = await prisma.groupChat.findUnique({
+                    where: {
+                        id: parseInt(req.params.id)
+                    }
                 });
+                if (oldData && oldData.image) {
+                    fs.unlink(`public/${oldData.image}`, (error) => {
+                        if (error && error.code !== 'ENOENT') {
+                            console.error(`Error deleting old image file (null update): ${oldData.image}`, error);
+                        } else if (error && error.code === 'ENOENT') {
+                            console.warn(`Old image file not found to delete (null update): ${oldData.image}`);
+                        } else {
+                            console.log(`Old image file deleted (null update): ${oldData.image}`);
+                        }
+                    });
+                }
 
                 data.image = path.join("images/groupchat", filename)
             }

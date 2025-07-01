@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { errorResponse, successResponse } from "../utils/response";
-import { createGroupchat, deleteGroupchat, deleteGroupchatMessage, getAllGroupChat, getAllGroupchatMessage, getDetailGroupchat, getJoindedUserGroupChat, getUserGroupchat, insertUserToGroupMember, postGroupchatMessage, updateGroupchat, updateGroupchatMessage } from "../services/groupchat.service";
+import { createGroupchat, deleteGroupchat, deleteGroupchatMessage, deleteUserFromGroupchatMember, getAllGroupChat, getAllGroupchatMessage, getDetailGroupchat, getJoindedUserGroupChat, getUserGroupchat, insertUserToGroupMember, postGroupchatMessage, updateGroupchat, updateGroupchatMessage } from "../services/groupchat.service";
 import fs from "fs";
 import { decryptText, encryptText } from "../utils/messageEncript";
 import { getLastMessageTimestamp } from "../utils/chatUtils";
@@ -144,37 +144,100 @@ export async function postGroupChatHandle(req: Request, res: Response) {
 export async function addUserIntoMemberGroupchatHandle(req: Request, res: Response) {
     try {
         const groupId = parseInt(req.params.id);
-        let result;
-        
-        if (req.query && req.query.manyMember === 'true') {
-            const userIdsToAdd: number[] = JSON.parse(req.body.userId);
-            userIdsToAdd.map(async (id) => {
-                const existingMembers = await prisma.groupChatMember.findFirst({
+        if (isNaN(groupId)) {
+            res.status(400).json(errorResponse(400, 'Bad Request', "Invalid Group ID.", "Invalid Group ID."));
+            return;
+        };
+
+        const isManyMember = req.query.manyMember === 'true';
+        let addedMembers = [];
+        let alreadyJoinedUsers: {
+            id: number;
+            userId: number;
+            groupId: number;
+        }[] | null = [];
+
+        if (isManyMember) {
+            if (typeof req.body.userId === 'string') {
+                req.body.userId = JSON.parse(req.body.userId);
+            }
+            if (!Array.isArray(req.body.userId)) {
+                res.status(400).json(errorResponse(400, 'Bad Request', "userId must be an array when manyMember is 'true'.", "userId must be an array."));
+                return;
+            }
+
+            const userIdsToAdd: number[] = req.body.userId.map(Number);
+
+            const addPromises = userIdsToAdd.map(async (id) => {
+                const existingMember = await prisma.groupChatMember.findFirst({
                     where: {
-                        userId: id
+                        userId: id,
+                        groupId: groupId
                     }
-                })
-                if(existingMembers && existingMembers.userId === id) {
-                    console.error("Some user already in group");
+                });
+
+                if (existingMember) {
+                    console.warn(`User with ID: ${id} is already a member of group ${groupId}.`);
+                    alreadyJoinedUsers.push(existingMember);
+                    return null;
                 } else {
-                    await insertUserToGroupMember(groupId, id);
+                    const newMember = await insertUserToGroupMember(groupId, id);
+                    return newMember;
                 }
             });
-            result = null;
-        } else {
-            const existingMembers = await prisma.groupChatMember.findFirst({
-                    where: {
-                        userId: req.body.userId
-                    }
-            })
-            if(existingMembers && existingMembers.id === req.body.userId) {
+
+            const results = await Promise.all(addPromises);
+            addedMembers = results.filter(Boolean); // Filter out nulls
+
+            if (addedMembers.length > 0) {
+                res.status(200).json(successResponse({
+                    addedMembers: addedMembers,
+                    alreadyJoinedUsers: alreadyJoinedUsers
+                }));
+            } else if (alreadyJoinedUsers.length > 0) {
+                res.status(409).json(errorResponse(409, 'Conflict', "Conflict", "All specified users are already members of this group."));
+            } else {
+                res.status(500).json(errorResponse(500, 'Internal Server Error', "No members added due to an unknown reason.", "No members added."));
+            }
+
+        } else { // Single member addition
+            const userId = Number(req.body.userId);
+            if (isNaN(userId)) {
+                res.status(400).json(errorResponse(400, 'Bad Request', "Invalid User ID.", "Invalid User ID."));
+                return;
+            }
+
+            const existingMember = await prisma.groupChatMember.findFirst({
+                where: {
+                    userId: userId,
+                    groupId: groupId
+                }
+            });
+
+            if (existingMember) {
                 res.status(409).json(errorResponse(409, 'Conflict', "Conflict", "User already joined into group"));
                 return;
             }
-            result = await insertUserToGroupMember(groupId, req.body.userId)
-        }
-        res.status(200).json(successResponse(result))
 
+            const newMember = await insertUserToGroupMember(groupId, userId);
+            console.log("single: ", newMember);
+            res.status(200).json(successResponse(newMember));
+        }
+
+    } catch (error) {
+        const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+        console.error(errMessage)
+        res.status(500).json(
+            errorResponse(500, 'Internal Server Error', error, errMessage)
+        )
+    }
+}
+
+export async function deleteUserFromMemberGroupchatHandle(req: Request, res: Response) {
+    try {
+        const id = parseInt(req.params.id);
+        const result = await deleteUserFromGroupchatMember(id);
+        res.status(200).json(successResponse(result))
     } catch (error) {
         const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
         console.error(errMessage)

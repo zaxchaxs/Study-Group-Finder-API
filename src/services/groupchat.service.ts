@@ -41,6 +41,7 @@ export async function getJoindedUserGroupChat(userId: number) {
                     },
                     members: {
                         select: {
+                            id: true,
                             groupId: true,
                             userId: true,
                             user: {
@@ -106,6 +107,20 @@ export async function insertUserToGroupMember(groupId: number, userId: number) {
         data: {
             groupId,
             userId
+        },
+        include: {
+            group: true,
+            user: {
+                select: {id: true, name: true, avatar: true, username: true}
+            }
+        }
+    })
+};
+
+export async function deleteUserFromGroupchatMember(memberId: number) {
+    return await prisma.groupChatMember.delete({
+        where: {
+            id: memberId
         }
     })
 }

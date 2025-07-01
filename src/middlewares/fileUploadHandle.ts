@@ -8,11 +8,11 @@ import path from "path";
 export async function validateImageUpload(req: Request, res: Response, next: NextFunction) {
     memoryUpload([{ name: "image", maxCount: 1 }])(req, res, async (err) => {
         if (err) next(err);
-
+        
         try {
             const result = uploadImageSchema.safeParse({
                 path: req.body.path,
-                image: req.body.files?.image && "image existed"
+                image: req.files
             });
             if (!result.success) {
                 const parsed = JSON.parse(result.error.message)

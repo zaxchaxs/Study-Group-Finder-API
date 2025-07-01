@@ -45,6 +45,8 @@ export async function validateRegistUser(req: Request, res: Response, next: Next
         fs.writeFileSync(fullPath, file.buffer);
 
         req.body.avatar = path.join("images/user", filename);
+      } else {
+        req.body.avatar = null;
       }
 
       const hashedPassword = await bcrypt.hash(result.data.password, 10);
@@ -87,9 +89,22 @@ export async function validateUpdateUser(req: Request, res: Response, next: Next
         fs.writeFileSync(fullPath, file.buffer);
 
         // delete image lama
-        fs.unlink(`public/${newData.avatar}`, (error) => {
-          console.error("#irzi ignore this: ", error);
+        const oldData = await prisma.user.findUnique({
+          where: {
+            id: parseInt(req.params.id)
+          }
         });
+        if (oldData && oldData.avatar) {
+          fs.unlink(`public/${oldData?.avatar}`, (error) => {
+            if (error && error.code !== 'ENOENT') {
+              console.error(`Error deleting old image file (null update): ${oldData.avatar}`, error);
+            } else if (error && error.code === 'ENOENT') {
+              console.warn(`Old image file not found to delete (null update): ${oldData.avatar}`);
+            } else {
+              console.log(`Old image file deleted (null update): ${oldData.avatar}`);
+            }
+          });
+        }
 
         newData.avatar = path.join("images/user", filename)
       }

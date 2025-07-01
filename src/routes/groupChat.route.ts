@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addUserIntoMemberGroupchatHandle, deleteGroupChatHandle, deleteGroupchatMessageHandle, getAllGroupChatHandle, getAllGroupchatMessageHandle, getDetailGroupChatHandle, getJoinedUserGroupChatHandle, getUserGroupChatHandle, postGroupChatHandle, postGroupchatMessageHandle, updateGroupChatHandle, updateGroupchatMessageHandle } from "../controllers/groupchat.controller";
+import { addUserIntoMemberGroupchatHandle, deleteGroupChatHandle, deleteGroupchatMessageHandle, deleteUserFromMemberGroupchatHandle, getAllGroupChatHandle, getAllGroupchatMessageHandle, getDetailGroupChatHandle, getJoinedUserGroupChatHandle, getUserGroupChatHandle, postGroupChatHandle, postGroupchatMessageHandle, updateGroupChatHandle, updateGroupchatMessageHandle } from "../controllers/groupchat.controller";
 import { validateAddMemberIntoGroupchat, validateCreateGroupchat, validateCreateGroupchatMessage, validateUpdateGroupChat, validateUpdateGroupchatMessage } from "../middlewares/groupchatHandle";
 
 const router = Router();
@@ -10,6 +10,7 @@ router.get("/user-author/:id", getUserGroupChatHandle);
 router.get("/:id", getDetailGroupChatHandle);
 router.post("/", validateCreateGroupchat, postGroupChatHandle);
 router.post("/member/:id", validateAddMemberIntoGroupchat, addUserIntoMemberGroupchatHandle);
+router.delete("/member/:id", deleteUserFromMemberGroupchatHandle);
 router.put("/:id", validateUpdateGroupChat, updateGroupChatHandle);
 router.delete("/:id", deleteGroupChatHandle);
 
