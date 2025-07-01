@@ -135,7 +135,7 @@ model PrivateChatMessage {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  chat      PrivateChat @relation(fields: [chatId], references: [id])
+  chat      PrivateChat @relation(fields: [chatId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   author    User        @relation(fields: [authorId], references: [id])
 
   @@map("private_chat_message")
