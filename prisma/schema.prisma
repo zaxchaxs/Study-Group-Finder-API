@@ -42,6 +42,7 @@ model User {
   privateMessages   PrivateChatMessage[]
   todolists         Todolist[]
   UserRank         UserRank[]
+  pomodoroHistory PomodoroHistory[]
 
   @@map("user")
 }
@@ -135,7 +136,7 @@ model PrivateChatMessage {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  chat      PrivateChat @relation(fields: [chatId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  chat      PrivateChat @relation(fields: [chatId], references: [id])
   author    User        @relation(fields: [authorId], references: [id])
 
   @@map("private_chat_message")
@@ -193,4 +194,17 @@ model UserRank {
   rankCategory RankCategory  @relation(fields: [rankCatId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@map("user_rank")
+}
+
+model PomodoroHistory {
+  id Int @id @default(autoincrement())
+  userId Int
+  duration Int
+  session Int 
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("pomodoro_history")
 }

@@ -6,6 +6,7 @@ import privatechatRoutes from "./routes/privatechat.route";
 import todolistRoutes from "./routes/todolist.route";
 import rankRoutes from "./routes/rank.route";
 import fileUploadRoutes from "./routes/fileupload.route";
+import pomodoroRoutes from "./routes/pomodoroHistory.route";
 import { errorHandler } from "./middlewares/errorHandler";
 import cors from "cors";
 
@@ -19,6 +20,7 @@ app.use("/api/groups", groupchatRoutes);
 app.use("/api/private-chat", privatechatRoutes);
 app.use("/api/todolist", todolistRoutes);
 app.use("/api/rank", rankRoutes);
+app.use("/api/pomodoro", pomodoroRoutes);
 
 app.use("/api/upload", fileUploadRoutes);
 app.use(express.static(path.join(__dirname, "../public")));
