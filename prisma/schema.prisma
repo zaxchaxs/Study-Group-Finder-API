@@ -34,6 +34,8 @@ model User {
   // FriendsReceived: Permintaan pertemanan yang saya terima (saya adalah `receiverId`)
   friendsReceived    Friendship[]         @relation("UserReceives")
 
+
+  userInterests     UserInterest[]
   groupChats        GroupChat[]       @relation("GroupAuthor")
   groupMessages     GroupChatMessage[]
   groupMemberships  GroupChatMember[]
@@ -69,6 +71,36 @@ model Friendship {
   @@unique([requesterId, receiverId])
 
   @@map("friendship")
+}
+
+model Interest {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique // Nama minat, misal "Computer Science", "Arts", "Mathematics"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relasi ke UserInterest untuk mengetahui user mana yang memiliki minat ini
+  userInterests UserInterest[]
+
+  @@map("interest")
+}
+
+model UserInterest {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  interestId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relasi ke model User
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Relasi ke model Interest
+  interest  Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+
+  // Menjamin kombinasi user dan minat adalah unik (user tidak bisa punya minat yang sama dua kali)
+  @@unique([userId, interestId])
+
+  @@map("user_interest")
 }
 
 model GroupChat {

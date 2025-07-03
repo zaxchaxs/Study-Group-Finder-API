@@ -6,13 +6,14 @@ import { generateToken, verifyToken } from "../utils/jwt";
 import fs from "fs";
 import { FriendStatusEnum } from "../types/user";
 import { Prisma } from "@prisma/client";
+import { getAllInterest } from "../services/interest.service";
 
 export async function getAllUserHandle(req: Request, res: Response) {
   try {
     const host = `${req.protocol}://${req.get("host")}`
-    const { name } = req.query;
-
+    const { name, interest } = req.query;
     let whereClause: Prisma.UserWhereInput = {};
+
     if (name && typeof name === 'string') {
       whereClause = {
         OR: [
@@ -28,7 +29,33 @@ export async function getAllUserHandle(req: Request, res: Response) {
           }
         ]
       }
-    }
+    };
+    
+    let interests: {id: number; name: string}[] = [];
+    if(interest && typeof interest === "string") {
+      const interestName = interest.split(",").filter(name => name.length > 0);
+      interests = await getAllInterest({
+        name: {
+          in: interestName
+        }
+      });
+    };
+
+    if(interests.length > 0) {
+      const interestsId = interests.map(el => el.id);
+      whereClause = {
+        ...whereClause,
+        userInterests: {
+          some: {
+            interestId: {
+              in: interestsId
+            }
+          }
+        }
+      }
+    };
+
+
     const users = await getAllUser(whereClause);
     users.forEach(user => {
       if (user.avatar) {

@@ -6,6 +6,8 @@ import privatechatRoutes from "./routes/privatechat.route";
 import todolistRoutes from "./routes/todolist.route";
 import rankRoutes from "./routes/rank.route";
 import fileUploadRoutes from "./routes/fileupload.route";
+import interestRoutes from "./routes/interest.route";
+import userInterestRoutes from "./routes/userInterest.route";
 import { errorHandler } from "./middlewares/errorHandler";
 import cors from "cors";
 
@@ -15,6 +17,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 app.use("/api/users", userRoutes);
+app.use("/api/interest", interestRoutes);
+app.use("/api/user-interest", userInterestRoutes);
 app.use("/api/groups", groupchatRoutes);
 app.use("/api/private-chat", privatechatRoutes);
 app.use("/api/todolist", todolistRoutes);
