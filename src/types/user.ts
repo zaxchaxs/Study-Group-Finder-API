@@ -3,10 +3,10 @@ export interface UserType {
     username: string;
     email: string;
     name: string
-    avatar: string;
+    avatar: string | null;
     role: "admin" | "user"
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Date;
+    updatedAt: Date;
 };
 
 export interface PostUserType {
@@ -38,8 +38,8 @@ export interface UserFriend {
     name: string;
     avatar: string | null;
     role: "admin" | "user"
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export enum FriendStatusEnum {

@@ -1,6 +1,8 @@
 import { FriendStatus, Prisma } from "@prisma/client";
 import prisma from "../configs/prismaClient";
 import { FriendStatusEnum, LoginUserType, PostUserType, UpdateUserType, UserFriend } from "../types/user";
+import { DefaultArgs } from "@prisma/client/runtime/library";
+import { UserFriendDataType } from "../types/user-friend";
 
 export async function getAllUser(whereClause?: Prisma.UserWhereInput) {
   return await prisma.user.findMany({
@@ -18,7 +20,7 @@ export async function getAllUser(whereClause?: Prisma.UserWhereInput) {
   });
 }
 
-export async function getUser(whereClause: Prisma.UserWhereUniqueInput) {
+export async function getUser(whereClause: Prisma.UserWhereUniqueInput,) {
   return await prisma.user.findUnique({
     where: whereClause,
     select: {
@@ -30,6 +32,7 @@ export async function getUser(whereClause: Prisma.UserWhereUniqueInput) {
       role: true,
       createdAt: true,
       updatedAt: true,
+      userInterests: true
     }
   })
 }
@@ -145,34 +148,52 @@ export async function getUserByUsn(username: string) {
 
 // FriendShip
 export async function getUserFriends(whereClause: Prisma.UserWhereUniqueInput, status?: FriendStatusEnum) {
-  prisma.user.findUnique({
-    where: whereClause,
-  })
 
-  let whereStatusCondition: Prisma.FriendshipWhereInput = {};
-  if(status) {
-    whereStatusCondition = {
-      status: status
-    }
-  }
-  
   const friendRelations = await prisma.user.findUnique({
     where: whereClause,
     select: {
       friendsInitiated: { // User sebagai requester
-        where: whereStatusCondition,
+        where: {
+          status
+        },
         select: {
+          id: true,
+          requesterId: true,
+          receiverId: true,
           receiver: { // Pilih detail teman(yang menerima permintaan user)
-            select: { id: true, username: true, name: true, avatar: true },
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              name: true,
+              avatar: true,
+              role: true,
+              createdAt: true,
+              updatedAt: true,
+            },
           },
           status: true
         },
       },
       friendsReceived: { // User sebagai receiver
-        where: whereStatusCondition,
+        where: {
+          status
+        },
         select: {
+          id: true,
+          requesterId: true,
+          receiverId: true,
           requester: { // Pilih detail teman saya (permintaan user)
-            select: { id: true, username: true, name: true, avatar: true },
+            select: {
+              id: true,
+              email: true,
+              username: true,
+              name: true,
+              avatar: true,
+              role: true,
+              createdAt: true,
+              updatedAt: true,
+            }
           },
           status: true
         },
@@ -184,27 +205,27 @@ export async function getUserFriends(whereClause: Prisma.UserWhereUniqueInput, s
     return []
   };
 
-  const allFriends: any[] = [];
+  const allFriends: UserFriendDataType[] = [];
   // Tambahkan teman dari permintaan yang saya kirim
   friendRelations.friendsInitiated.forEach(fs => {
-    if (fs.receiver) {
-      allFriends.push({...fs.receiver, status: fs.status});
-    }
+    allFriends.push({...fs, type: "receiver"});
   });
-
+  
   // Tambahkan teman dari permintaan yang saya terima
   friendRelations.friendsReceived.forEach(fs => {
-    if (fs.requester) {
-      // Pastikan tidak ada duplikasi jika pengguna mem-query dirinya sendiri atau ada kasus edge lainnya
-      // Meskipun dengan desain status ACCEPTED, duplikasi seharusnya tidak terjadi.
-      // Namun, untuk jaga-jaga, bisa pakai Set atau filter manual.
-      if (!allFriends.some(f => f.id === fs.requester.id)) {
-        allFriends.push({...fs.requester, status: fs.status});
-      }
-    }
+    allFriends.push({...fs, type: "requester"});
+    // if (fs.requester) {
+    //   // Pastikan tidak ada duplikasi jika pengguna mem-query dirinya sendiri atau ada kasus edge lainnya
+    //   // Meskipun dengan desain status ACCEPTED, duplikasi seharusnya tidak terjadi.
+    //   // Namun, untuk jaga-jaga, bisa pakai Set atau filter manual.
+    //   if (!allFriends.some(f => f.id === fs.requester.id)) {
+    //     allFriends.push({...fs.requester, status: fs.status});
+    //   }
+    // }
   });
 
   return allFriends;
+  // return friendRelations;
 };
 
 export async function requestFriend(data: { requesterId: number, receiverId: number }) {
@@ -258,8 +279,8 @@ export async function AcceptRequestFriend(data: { requesterId: number, receiverI
     // where: { id: data.requesterId },
     where: {
       AND: [
-        {requesterId: data.requesterId},
-        {receiverId: data.receiverId}
+        { requesterId: data.requesterId },
+        { receiverId: data.receiverId }
       ]
     }
   });

@@ -7,6 +7,7 @@ import fs from "fs";
 import { FriendStatusEnum } from "../types/user";
 import { Prisma } from "@prisma/client";
 import { getAllInterest } from "../services/interest.service";
+import { UserFriendDataType } from "../types/user-friend";
 
 export async function getAllUserHandle(req: Request, res: Response) {
   try {
@@ -267,31 +268,58 @@ export async function getUserFriendsHandle(req: Request, res: Response) {
     const identifier = req.params.indentifier;
     const host = `${req.protocol}://${req.get("host")}`
 
-    let user;
+    let result: UserFriendDataType[] | null = null;
 
     if (byUsername == "true") {
-      user = await getUser({
+      result = await getUserFriends({
         username: identifier
-      })
+      }, status as FriendStatusEnum)
     } else {
-      user = await getUser({
-        id: Number(identifier)
-      })
+      result = await getUserFriends({
+        id: Number(identifier),
+      }, status as FriendStatusEnum)
     }
 
-    if (!user) {
-      res.status(404).json(errorResponse(404, 'Not Found', "User Not Found", "User Not Found"))
+    if (!result) {
+      res.status(404).json(errorResponse(404, 'Not Found', "Friend Not Found", "Friend Not Found"))
       return
     }
-
-    const result = await getUserFriends({
-      id: user.id
-    }, status as FriendStatusEnum)
-    result.forEach((user) => {
-      if (user.avatar) {
-        user.avatar = `${host}/${user.avatar}`
-      };
+    result.map(user => {
+      if(user.type == "receiver") {
+        if(user.receiver.avatar){
+          user.receiver.avatar = `${host}/${user.receiver.avatar}`
+        }
+      }
     })
+
+    result.map(user => {
+      if(user.type == "requester") {
+        if(user.requester.avatar) {
+          user.requester.avatar = `${host}/${user.requester.avatar}`
+        }
+      }
+    })
+
+    result.sort((a, b) => {
+    let nameA: string;
+    let nameB: string;
+
+    if (a.type === "receiver") {
+      nameA = a.receiver.name;
+    } else {
+      nameA = a.requester.name;
+    }
+
+    if (b.type === "receiver") {
+      nameB = b.receiver.name;
+    } else {
+      nameB = b.requester.name;
+    }
+
+    //(case-insensitive)
+    return nameA.toLowerCase().localeCompare(nameB.toLowerCase());
+  });
+
 
     res.status(200).json(successResponse(result))
 
