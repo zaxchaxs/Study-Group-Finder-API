@@ -46,7 +46,17 @@ Isi dari file .env chat saja
 ### 4. Migrasi Prisma
 Jalankan pada terminal:
 ```
-npx prisma migrate dev --name init
+npx prisma migrate dev --create-only --name init
+```
+Akses file migration.sql pada folder prisma/migrations/..._init.
+
+Pergi pada query pembuatan tabel "user_profile" lalu paste query berikut pada bagian paling bawah.
+```
+CREATE SPATIAL INDEX `idx_user_profile_position` ON `user_profile` (`position`);
+```
+Lalu
+```
+npx prisma migrate dev --name add_user_profile_table
 npx prisma generate
 ```
 ### 5. Dokumentasi API

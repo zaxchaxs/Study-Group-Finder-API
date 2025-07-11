@@ -34,7 +34,7 @@ model User {
   // FriendsReceived: Permintaan pertemanan yang saya terima (saya adalah `receiverId`)
   friendsReceived    Friendship[]         @relation("UserReceives")
 
-
+  profile           UserProfile?
   userInterests     UserInterest[]
   groupChats        GroupChat[]       @relation("GroupAuthor")
   groupMessages     GroupChatMessage[]
@@ -43,9 +43,29 @@ model User {
   privateChatsTwo   PrivateChat[]     @relation("UserTwo")
   privateMessages   PrivateChatMessage[]
   todolists         Todolist[]
-  UserRank         UserRank[]
+  UserRank          UserRank[]
 
   @@map("user")
+}
+
+model UserProfile {
+  id          Int       @id @default(autoincrement())
+  userId      Int       @unique // One-to-one relationship with User
+  address     String?
+  city        String?
+  province    String?
+  country     String?
+  postalCode  String?
+  position     Unsupported("POINT NOT NULL SRID 4326") // POINT type for coordinates
+  // Here are if you want the documentations, (baca jmbut kalo mau paham).
+  // https://enlear.academy/working-with-geo-coordinates-in-mysql-5451e54cddec
+
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profile")
 }
 
 enum FriendStatus {
