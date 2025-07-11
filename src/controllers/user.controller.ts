@@ -334,9 +334,13 @@ export async function getUserFriendsHandle(req: Request, res: Response) {
 
 export async function requestFriendHandle(req: Request, res: Response) {
   try {
+    const host = `${req.protocol}://${req.get("host")}`
+
     const result = await requestFriend(req.body);
     res.status(200).json(successResponse(result))
-
+    if (result.receiver.avatar) {
+      result.receiver.avatar = `${host}/${result.receiver.avatar}`
+    }
   } catch (error) {
     const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
     console.error(errMessage)

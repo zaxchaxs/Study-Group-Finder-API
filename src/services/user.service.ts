@@ -208,12 +208,12 @@ export async function getUserFriends(whereClause: Prisma.UserWhereUniqueInput, s
   const allFriends: UserFriendDataType[] = [];
   // Tambahkan teman dari permintaan yang saya kirim
   friendRelations.friendsInitiated.forEach(fs => {
-    allFriends.push({...fs, type: "receiver"});
+    allFriends.push({ ...fs, type: "receiver" });
   });
-  
+
   // Tambahkan teman dari permintaan yang saya terima
   friendRelations.friendsReceived.forEach(fs => {
-    allFriends.push({...fs, type: "requester"});
+    allFriends.push({ ...fs, type: "requester" });
     // if (fs.requester) {
     //   // Pastikan tidak ada duplikasi jika pengguna mem-query dirinya sendiri atau ada kasus edge lainnya
     //   // Meskipun dengan desain status ACCEPTED, duplikasi seharusnya tidak terjadi.
@@ -267,9 +267,24 @@ export async function requestFriend(data: { requesterId: number, receiverId: num
 
   // Buat permintaan pertemanan baru
   return await prisma.friendship.create({
-    data: {
-      ...data,
-      status: FriendStatus.PENDING,
+    data,
+    select: {
+      id: true,
+      requesterId: true,
+      receiverId: true,
+      receiver: { // Pilih detail teman saya (permintaan user)
+        select: {
+          id: true,
+          email: true,
+          username: true,
+          name: true,
+          avatar: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+        }
+      },
+      status: true
     },
   });
 }
