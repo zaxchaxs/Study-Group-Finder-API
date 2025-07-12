@@ -16,7 +16,8 @@ export async function getAllUser(whereClause?: Prisma.UserWhereInput) {
       role: true,
       createdAt: true,
       updatedAt: true,
-    }
+      profile: true
+    },
   });
 }
 

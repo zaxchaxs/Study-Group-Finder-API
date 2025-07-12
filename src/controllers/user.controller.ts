@@ -4,10 +4,11 @@ import { errorResponse, successResponse } from "../utils/response";
 import { JWT_REFRESH_SECRET_KEY, JWT_SECRET_KEY } from "../data/envData";
 import { generateToken, verifyToken } from "../utils/jwt";
 import fs from "fs";
-import { FriendStatusEnum } from "../types/user";
+import { FriendStatusEnum, NearbyUserType } from "../types/user";
 import { Prisma } from "@prisma/client";
 import { getAllInterest } from "../services/interest.service";
 import { UserFriendDataType } from "../types/user-friend";
+import { findNearbyUsers } from "../services/user-profile.service";
 
 export async function getAllUserHandle(req: Request, res: Response) {
   try {
@@ -323,6 +324,42 @@ export async function getUserFriendsHandle(req: Request, res: Response) {
 
     res.status(200).json(successResponse(result))
 
+  } catch (error) {
+    const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error(errMessage)
+    res.status(500).json(
+      errorResponse(500, 'Internal Server Error', error, errMessage)
+    )
+  }
+}
+
+export async function getNearbyUserFriendsHandle(req: Request, res: Response) {
+  try {
+    const host = `${req.protocol}://${req.get("host")}`
+
+    const { latitude, longitude, radiusKm, limit } = req.query;
+    const currentLatitude = parseFloat(latitude as string);
+    const currentLongitude = parseFloat(longitude as string);
+    const intLimit = parseInt(limit as string);
+    const radius = parseFloat(radiusKm as string); // Radius in Kilometers
+
+    if (isNaN(currentLatitude) || isNaN(intLimit) || isNaN(currentLongitude) || isNaN(radius) || radius <= 0) {
+      res.status(400).json(errorResponse(400, 'Bad Request', 'Invalid latitude, longitude, or radius.', 'Invalid latitude, longitude, radius, or limit.'));
+      return;
+    };
+
+    const radiusMeters = radius * 1000;
+
+    // havent decide yet for result type (later);
+    const result: NearbyUserType[] = await findNearbyUsers(currentLatitude, currentLongitude, radiusMeters, intLimit);
+    
+    result.forEach(user => {
+      if(user.avatar) {
+        user.avatar = `${host}/${user.avatar}`
+      }
+    })
+
+    res.status(200).json(successResponse(result))
   } catch (error) {
     const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
     console.error(errMessage)

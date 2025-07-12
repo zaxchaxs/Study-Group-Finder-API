@@ -43,3 +43,10 @@ export const updateFriendRequsetStatusSchema =  z.object({
   receiverId: z.number({message: "Receiver ID is required!"}),
   status: z.enum(["PENDING", "ACCEPTED", "BLOCKED", "REJECTED"])
 });
+
+export const upsertUserProfileSchema =  z.object({
+  userId: z.number({message: "User ID is required"}),
+  isLocationShared: z.boolean({message: "isLocaltion flag is required!"}),
+  latitude: z.number({message: "latitude coordinates is required! (Send 0 for optional)"}),
+  longitude: z.number({message: "longitude coordinates is required! (Send 0 for optional)"})
+});

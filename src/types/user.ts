@@ -48,3 +48,16 @@ export enum FriendStatusEnum {
     BLOCKED = "BLOCKED",
     REJECTED = "REJECTED",
 }
+
+export interface NearbyUserType extends UserType {
+    "profileId": number,
+    "address": string,
+    "city": string,
+    "province": string,
+    "country": string,
+    "postalCode": number,
+    "isLocationShared": boolean,
+    "latitude": number,
+    "longitude": number,
+    "distance": number
+}

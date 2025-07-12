@@ -52,7 +52,7 @@ Akses file migration.sql pada folder prisma/migrations/..._init.
 
 Pergi pada query pembuatan tabel "user_profile" lalu paste query berikut pada bagian paling bawah.
 ```
-CREATE SPATIAL INDEX `idx_user_profile_position` ON `user_profile` (`position`);
+CREATE SPATIAL INDEX `idx_user_profile_location` ON `user_profile` (`location`);
 ```
 Lalu
 ```
