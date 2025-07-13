@@ -4,15 +4,18 @@ import { errorResponse, successResponse } from "../utils/response";
 import { JWT_REFRESH_SECRET_KEY, JWT_SECRET_KEY } from "../data/envData";
 import { generateToken, verifyToken } from "../utils/jwt";
 import fs from "fs";
-import { FriendStatusEnum } from "../types/user";
+import { FriendStatusEnum, NearbyUserType } from "../types/user";
 import { Prisma } from "@prisma/client";
+import { getAllInterest } from "../services/interest.service";
+import { UserFriendDataType } from "../types/user-friend";
+import { findNearbyUsers } from "../services/user-profile.service";
 
 export async function getAllUserHandle(req: Request, res: Response) {
   try {
     const host = `${req.protocol}://${req.get("host")}`
-    const { name } = req.query;
-
+    const { name, interest } = req.query;
     let whereClause: Prisma.UserWhereInput = {};
+
     if (name && typeof name === 'string') {
       whereClause = {
         OR: [
@@ -28,7 +31,33 @@ export async function getAllUserHandle(req: Request, res: Response) {
           }
         ]
       }
-    }
+    };
+    
+    let interests: {id: number; name: string}[] = [];
+    if(interest && typeof interest === "string") {
+      const interestName = interest.split(",").filter(name => name.length > 0);
+      interests = await getAllInterest({
+        name: {
+          in: interestName
+        }
+      });
+    };
+
+    if(interests.length > 0) {
+      const interestsId = interests.map(el => el.id);
+      whereClause = {
+        ...whereClause,
+        userInterests: {
+          some: {
+            interestId: {
+              in: interestsId
+            }
+          }
+        }
+      }
+    };
+
+
     const users = await getAllUser(whereClause);
     users.forEach(user => {
       if (user.avatar) {
@@ -240,31 +269,58 @@ export async function getUserFriendsHandle(req: Request, res: Response) {
     const identifier = req.params.indentifier;
     const host = `${req.protocol}://${req.get("host")}`
 
-    let user;
+    let result: UserFriendDataType[] | null = null;
 
     if (byUsername == "true") {
-      user = await getUser({
+      result = await getUserFriends({
         username: identifier
-      })
+      }, status as FriendStatusEnum)
     } else {
-      user = await getUser({
-        id: Number(identifier)
-      })
+      result = await getUserFriends({
+        id: Number(identifier),
+      }, status as FriendStatusEnum)
     }
 
-    if (!user) {
-      res.status(404).json(errorResponse(404, 'Not Found', "User Not Found", "User Not Found"))
+    if (!result) {
+      res.status(404).json(errorResponse(404, 'Not Found', "Friend Not Found", "Friend Not Found"))
       return
     }
-
-    const result = await getUserFriends({
-      id: user.id
-    }, status as FriendStatusEnum)
-    result.forEach((user) => {
-      if (user.avatar) {
-        user.avatar = `${host}/${user.avatar}`
-      };
+    result.map(user => {
+      if(user.type == "receiver") {
+        if(user.receiver.avatar){
+          user.receiver.avatar = `${host}/${user.receiver.avatar}`
+        }
+      }
     })
+
+    result.map(user => {
+      if(user.type == "requester") {
+        if(user.requester.avatar) {
+          user.requester.avatar = `${host}/${user.requester.avatar}`
+        }
+      }
+    })
+
+    result.sort((a, b) => {
+    let nameA: string;
+    let nameB: string;
+
+    if (a.type === "receiver") {
+      nameA = a.receiver.name;
+    } else {
+      nameA = a.requester.name;
+    }
+
+    if (b.type === "receiver") {
+      nameB = b.receiver.name;
+    } else {
+      nameB = b.requester.name;
+    }
+
+    //(case-insensitive)
+    return nameA.toLowerCase().localeCompare(nameB.toLowerCase());
+  });
+
 
     res.status(200).json(successResponse(result))
 
@@ -277,11 +333,51 @@ export async function getUserFriendsHandle(req: Request, res: Response) {
   }
 }
 
+export async function getNearbyUserFriendsHandle(req: Request, res: Response) {
+  try {
+    const host = `${req.protocol}://${req.get("host")}`
+
+    const { latitude, longitude, radiusKm, limit } = req.query;
+    const currentLatitude = parseFloat(latitude as string);
+    const currentLongitude = parseFloat(longitude as string);
+    const intLimit = parseInt(limit as string);
+    const radius = parseFloat(radiusKm as string); // Radius in Kilometers
+
+    if (isNaN(currentLatitude) || isNaN(intLimit) || isNaN(currentLongitude) || isNaN(radius) || radius <= 0) {
+      res.status(400).json(errorResponse(400, 'Bad Request', 'Invalid latitude, longitude, or radius.', 'Invalid latitude, longitude, radius, or limit.'));
+      return;
+    };
+
+    const radiusMeters = radius * 1000;
+
+    // havent decide yet for result type (later);
+    const result: NearbyUserType[] = await findNearbyUsers(currentLatitude, currentLongitude, radiusMeters, intLimit);
+    
+    result.forEach(user => {
+      if(user.avatar) {
+        user.avatar = `${host}/${user.avatar}`
+      }
+    })
+
+    res.status(200).json(successResponse(result))
+  } catch (error) {
+    const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
+    console.error(errMessage)
+    res.status(500).json(
+      errorResponse(500, 'Internal Server Error', error, errMessage)
+    )
+  }
+}
+
 export async function requestFriendHandle(req: Request, res: Response) {
   try {
+    const host = `${req.protocol}://${req.get("host")}`
+
     const result = await requestFriend(req.body);
     res.status(200).json(successResponse(result))
-
+    if (result.receiver.avatar) {
+      result.receiver.avatar = `${host}/${result.receiver.avatar}`
+    }
   } catch (error) {
     const errMessage = error instanceof Error ? error.message : "An unknown error occurred";
     console.error(errMessage)
